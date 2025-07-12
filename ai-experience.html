@@ -2,9 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Experience | Think and Invent</title>
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .output-container {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f9f9f9;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    pre {
+      background: #000;
+      color: #0f0;
+      padding: 1rem;
+      overflow-x: auto;
+    }
+    img {
+      margin-top: 1rem;
+      max-width: 100%;
+      border: 1px solid #ddd;
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -18,36 +38,66 @@
 
   <main>
     <section class="intro">
-      <h2>My AI Learning Journey</h2>
-      <p>This page chronicles various experiments and learning projects as I explore Artificial Intelligence.</p>
+      <h2>Interactive Maze Solver</h2>
+      <p>Select a maze and algorithm below to run the Python solver in real-time.</p>
+
+      <label for="mazeSelect">Maze:</label>
+      <select id="mazeSelect">
+        <option value="maze1.txt">maze1.txt</option>
+        <option value="maze2.txt">maze2.txt</option>
+        <option value="maze3.txt">maze3.txt</option>
+      </select>
+
+      <label for="algoSelect">Algorithm:</label>
+      <select id="algoSelect">
+        <option value="stack">Depth-First Search (Stack)</option>
+        <option value="queue">Breadth-First Search (Queue)</option>
+      </select>
+
+      <button onclick="solveMaze()">Solve</button>
+
+      <div class="output-container" id="output"></div>
     </section>
-
-    <div class="project-section">
-      <h3>1. Search Algorithms: DFS vs BFS</h3>
-      <p>This project explores how different search algorithms solve a maze. The two implementations use distinct strategies:</p>
-      <ul>
-        <li><strong>DFS (Depth-First Search):</strong> implemented using a <code>stack</code></li>
-        <li><strong>BFS (Breadth-First Search):</strong> implemented using a <code>queue</code></li>
-      </ul>
-
-      <h4>Depth-First Search (Stack-based)</h4>
-      <p>
-        <a href="https://colab.research.google.com/github/mhage82/ai-experiments/blob/main/search/maze_stack.ipynb" target="_blank" rel="noopener noreferrer">
-          <button>Open maze_stack.ipynb in Google Colab</button>
-        </a>
-      </p>
-
-      <h4>Breadth-First Search (Queue-based)</h4>
-      <p>
-        <a href="https://colab.research.google.com/github/mhage82/ai-experiments/blob/main/search/maze_queue.ipynb" target="_blank" rel="noopener noreferrer">
-          <button>Open maze_queue.ipynb in Google Colab</button>
-        </a>
-      </p>
-    </div>
   </main>
 
   <footer>
     <p>© 2025 Think and Invent</p>
   </footer>
+
+  <script>
+    const apiBase = "https://your-backend-host.com"; // Replace with your actual backend URL
+
+    async function solveMaze() {
+      const maze = document.getElementById("mazeSelect").value;
+      const algorithm = document.getElementById("algoSelect").value;
+      const output = document.getElementById("output");
+      output.innerHTML = "<p>⏳ Solving...</p>";
+
+      try {
+        const response = await fetch(`${apiBase}/solve`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ maze, algorithm })
+        });
+
+        const result = await response.json();
+        if (result.error) {
+          output.innerHTML = `<p style='color:red;'>❌ Error: ${result.error}</p>`;
+          return;
+        }
+
+        output.innerHTML = `
+          <p>✅ Solved using <strong>${algorithm}</strong>. States explored: ${result.states_explored}</p>
+          <h4>🔍 Solution:</h4>
+          <pre>${result.text}</pre>
+          <img src="${apiBase}${result.image}" alt="Maze Solution" />
+        `;
+      } catch (err) {
+        output.innerHTML = `<p style='color:red;'>❌ Request failed: ${err.message}</p>`;
+      }
+    }
+  </script>
 </body>
 </html>
