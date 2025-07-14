@@ -43,9 +43,9 @@
 
       <label for="mazeSelect">Maze:</label>
       <select id="mazeSelect">
-        <option value="maze1">maze1</option>
-        <option value="maze2">maze2</option>
-        <option value="maze3">maze3</option>
+        <option value="maze1.txt">maze1</option>
+        <option value="maze2.txt">maze2</option>
+        <option value="maze3.txt">maze3</option>
       </select>
 
       <label for="algoSelect">Algorithm:</label>
@@ -66,6 +66,19 @@
 
   <script>
     const apiBase = "https://ai-backend-jd01.onrender.com"; // Replace with your actual backend URL
+
+    //Show maze image when user changes maze selection
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("mazeSelect").addEventListener("change", () => {
+        const maze = document.getElementById("mazeSelect").value;
+        const img = document.getElementById("mazeImage");
+        img.src = `${apiBase}/static/${maze.replace('.txt', '')}_original.png?t=${Date.now()}`;
+        img.style.display = "block";
+      });
+
+  // Trigger it once on load
+  document.getElementById("mazeSelect").dispatchEvent(new Event("change"));
+});
 
     async function solveMaze() {
       const maze = document.getElementById("mazeSelect").value;
@@ -89,11 +102,10 @@
         }
 
         output.innerHTML = `
-          <p>Solved using <strong>${algorithm}</strong>. States explored: ${result.states_explored}</p>
-          <h4>Solution:</h4>
-          <pre>${result.text}</pre>
-          <img src="${apiBase}${result.image}?t=${Date.now()}" alt="Maze Solution" />        `;
-      } catch (err) {
+          <p>✅ Solved using <strong>${algorithm}</strong>. States explored: ${result.states_explored}</p>
+          <img id="mazeImage" src="${apiBase}${result.image}?t=${Date.now()}" alt="Maze Solution" />
+        `;      }
+        catch (err) {
         output.innerHTML = `<p style='color:red;'>Request failed: ${err.message}</p>`;
       }
     }
