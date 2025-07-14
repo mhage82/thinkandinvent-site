@@ -53,7 +53,9 @@
         <option value="stack">Depth-First Search (Stack)</option>
         <option value="queue">Breadth-First Search (Queue)</option>
       </select>
-
+      
+      <img id="mazeImage" style="display:none;" alt="Maze preview" />
+      
       <button onclick="solveMaze()">Solve</button>
 
       <div class="output-container" id="output"></div>
@@ -67,19 +69,22 @@
   <script>
     const apiBase = "https://ai-backend-jd01.onrender.com"; // Replace with your actual backend URL
 
-    //Show maze image when user changes maze selection
     document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("mazeSelect").addEventListener("change", () => {
-        const maze = document.getElementById("mazeSelect").value;
+      const mazeSelect = document.getElementById("mazeSelect");
+      const output = document.getElementById("output");
+
+      function loadUnsolvedImage() {
+        const maze = mazeSelect.value;
         const img = document.getElementById("mazeImage");
-        img.src = `${apiBase}/static/${maze.replace('.txt', '')}_original.png?t=${Date.now()}`;
+        img.src = `${apiBase}/maze-image/${maze}?t=${Date.now()}`;
         img.style.display = "block";
-      });
+        output.innerHTML = "";  // clear previous solution output
+        output.appendChild(img);
+      }
 
-  // Trigger it once on load
-  document.getElementById("mazeSelect").dispatchEvent(new Event("change"));
-});
-
+      mazeSelect.addEventListener("change", loadUnsolvedImage);
+      loadUnsolvedImage(); // trigger on page load
+    });
     async function solveMaze() {
       const maze = document.getElementById("mazeSelect").value;
       const algorithm = document.getElementById("algoSelect").value;
