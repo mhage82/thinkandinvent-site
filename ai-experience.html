@@ -84,18 +84,17 @@
 
         const result = await response.json();
         if (result.error) {
-          output.innerHTML = `<p style='color:red;'>❌ Error: ${result.error}</p>`;
+          output.innerHTML = `<p style='color:red;'>Error: ${result.error}</p>`;
           return;
         }
 
         output.innerHTML = `
-          <p>✅ Solved using <strong>${algorithm}</strong>. States explored: ${result.states_explored}</p>
-          <h4>🔍 Solution:</h4>
+          <p>Solved using <strong>${algorithm}</strong>. States explored: ${result.states_explored}</p>
+          <h4>Solution:</h4>
           <pre>${result.text}</pre>
-          <img src="${apiBase}${result.image}" alt="Maze Solution" />
-        `;
+          <img src="${apiBase}${result.image}?t=${Date.now()}" alt="Maze Solution" />        `;
       } catch (err) {
-        output.innerHTML = `<p style='color:red;'>❌ Request failed: ${err.message}</p>`;
+        output.innerHTML = `<p style='color:red;'>Request failed: ${err.message}</p>`;
       }
     }
   </script>
