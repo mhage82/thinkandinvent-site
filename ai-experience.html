@@ -133,10 +133,16 @@
           const square = document.createElement("div");
           square.textContent = cell || "";
           square.className = cell ? "taken" : "";
-          square.onclick = () => makeMove(i, j);
+          if (!cell && !isGameOver()) {
+            square.onclick = () => makeMove(i, j);
+          }
           grid.appendChild(square);
         });
       });
+    }
+
+    function isGameOver() {
+      return board.flat().every(cell => cell !== null);
     }
 
     async function startGame() {
@@ -149,27 +155,29 @@
     }
 
     async function makeMove(i, j) {
-      const res = await fetch(`${apiBase}/ttt/move`, {
+      if (board[i][j] !== null) return;
+
+      const response = await fetch(`${apiBase}/ttt/move`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ board, move: [i, j] })
       });
-      const data = await res.json();
-      board = data.board;
-      nextPlayer = data.next_player;
+
+      const result = await response.json();
+      board = result.board;
+      nextPlayer = result.next_player;
       renderBoard();
 
       const status = document.getElementById("ttt-status");
-      if (data.winner) {
-        status.textContent = `🏆 Winner: ${data.winner}`;
-      } else if (data.game_over) {
+      if (result.winner) {
+        status.textContent = `🏆 Winner: ${result.winner}`;
+      } else if (result.game_over) {
         status.textContent = "🤝 It's a draw!";
       } else {
         status.textContent = `Your turn (${nextPlayer})`;
       }
     }
 
-    // Auto-start
     window.onload = startGame;
   </script>
 </body>
