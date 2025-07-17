@@ -60,6 +60,14 @@
 
       <div class="output-container" id="output"></div>
     </section>
+    <section class="tictactoe">
+      <h2>🧠 Tic Tac Toe AI</h2>
+      <p>Play against a basic AI using Minimax logic.</p>
+      <div id="ttt-board" class="ttt-grid"></div>
+      <p id="ttt-status"></p>
+      <button onclick="startGame()">🔄 Restart</button>
+    </section>
+
   </main>
 
   <footer>
@@ -114,6 +122,55 @@
         output.innerHTML = `<p style='color:red;'>Request failed: ${err.message}</p>`;
       }
     }
+    let board = [];
+    let nextPlayer = "X";
+
+    function renderBoard() {
+      const grid = document.getElementById("ttt-board");
+      grid.innerHTML = "";
+      board.forEach((row, i) => {
+        row.forEach((cell, j) => {
+          const square = document.createElement("div");
+          square.textContent = cell || "";
+          square.className = cell ? "taken" : "";
+          square.onclick = () => makeMove(i, j);
+          grid.appendChild(square);
+        });
+      });
+    }
+
+    async function startGame() {
+      const res = await fetch(`${apiBase}/ttt/start`);
+      const data = await res.json();
+      board = data.board;
+      nextPlayer = "X";
+      document.getElementById("ttt-status").textContent = "Your turn (X)";
+      renderBoard();
+    }
+
+    async function makeMove(i, j) {
+      const res = await fetch(`${apiBase}/ttt/move`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ board, move: [i, j] })
+      });
+      const data = await res.json();
+      board = data.board;
+      nextPlayer = data.next_player;
+      renderBoard();
+
+      const status = document.getElementById("ttt-status");
+      if (data.winner) {
+        status.textContent = `🏆 Winner: ${data.winner}`;
+      } else if (data.game_over) {
+        status.textContent = "🤝 It's a draw!";
+      } else {
+        status.textContent = `Your turn (${nextPlayer})`;
+      }
+    }
+
+    // Auto-start
+    window.onload = startGame;
   </script>
 </body>
 </html>
