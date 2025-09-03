@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Heart Rate Monitoring System | Think and Invent</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      background-color: #f8f8f8;
+      color: #222;
+      margin: 0;
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+      color: #004080;
+    }
+    h2 {
+      color: #0066cc;
+      margin-top: 2rem;
+    }
+    section {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header-image {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <h1>Heart Rate Monitoring System (MSP430 + Bluetooth)</h1>
+
+    <p>
+      This project aimed to build a real-time heart rate monitoring system using a Texas Instruments MSP430 microcontroller. The system acquired ECG signals, processed them to determine heart rate and detect ST elevation (a sign of possible heart attack), and sent an alert to a paired mobile phone using Bluetooth.
+    </p>
+
+    <h2>1. Signal Acquisition</h2>
+    <p>
+      To accurately capture the ECG waveform, I used a <strong>differential amplifier</strong> at the front end. This setup offers common-mode noise rejection, which is crucial when acquiring biological signals like ECG that are often small in amplitude and susceptible to electrical noise.
+    </p>
+
+    <h2>2. Analog-to-Digital Conversion (ADC)</h2>
+    <p>
+      The analog signal was then passed through the internal ADC of the MSP430 microcontroller. According to the <strong>Nyquist Theorem</strong>, the sampling frequency must be at least twice the maximum expected signal frequency. ECG signals typically have frequencies below 150 Hz, so I sampled at over 300 Hz to preserve waveform fidelity.
+    </p>
+
+    <h2>3. Heartbeat Detection and Peak Counting</h2>
+    <p>
+      The digitized ECG signal was analyzed in real time to detect R-peaks. Each detected peak represents a heartbeat. The time intervals between these peaks were used to calculate the heart rate (in BPM). The heart rate was computed using:
+    </p>
+
+    <p style="text-align:center;"><em>Heart Rate (BPM) = 60 / (Time Interval Between R-peaks in Seconds)</em></p>
+
+    <h2>4. ST Elevation Detection</h2>
+    <p>
+      The algorithm also included basic ST segment analysis. If the signal showed elevated ST segments compared to a baseline, it triggered an alert, as this could be an early sign of myocardial infarction.
+    </p>
+
+    <h2>5. Bluetooth Communication and Alerts</h2>
+    <p>
+      A Bluetooth module (e.g., HC-05) was interfaced with the MSP430 using UART. Upon detecting ST elevation, the MSP430 sent an <strong>AT command</strong> to the Bluetooth module to transmit a pre-defined SMS to a paired mobile device.
+    </p>
+
+    <p>
+      The AT command used was:
+    </p>
+    <pre style="background:#f0f0f0;padding:1rem;border-left:4px solid #ccc;overflow-x:auto;">AT+CMGS="+1234567890"
+ST elevation detected. Please check the patient immediately.</pre>
+
+    <h2>Conclusion</h2>
+    <p>
+      This project demonstrated a low-power, real-time biomedical monitoring system capable of detecting critical cardiac events and alerting caregivers remotely via Bluetooth. The modularity and affordability of the MSP430 platform made it ideal for wearable or remote health applications.
+    </p>
+    <img src="heart_rate_images/heart_rate_monitor.webp" alt="Heart Rate Monitor System Diagram" class="header-image" />
+
+  </section>
+</body>
+</html>
