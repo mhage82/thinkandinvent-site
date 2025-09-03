@@ -6,29 +6,51 @@
   <title>Heart Rate Monitoring System | Think and Invent</title>
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      line-height: 1.6;
       background-color: #f8f8f8;
       color: #222;
+    }
+
+    header {
+      background-color: #222;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
       margin: 0;
-      padding: 2rem;
+      font-size: 1.5rem;
     }
-    h1 {
-      text-align: center;
-      color: #004080;
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-size: 1rem;
     }
-    h2 {
-      color: #0066cc;
-      margin-top: 2rem;
+
+    nav a:hover {
+      text-decoration: underline;
     }
+
     section {
       max-width: 800px;
-      margin: auto;
+      margin: 2rem auto;
       background: white;
       padding: 2rem;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
+
+    h2 {
+      color: #0066cc;
+      margin-top: 2rem;
+    }
+
     .header-image {
       display: block;
       max-width: 100%;
@@ -36,9 +58,32 @@
       border-radius: 8px;
       margin-bottom: 1rem;
     }
+
+    pre {
+      background: #f0f0f0;
+      padding: 1rem;
+      border-left: 4px solid #ccc;
+      overflow-x: auto;
+    }
+
+    p em {
+      display: block;
+      text-align: center;
+      margin: 1rem 0;
+    }
   </style>
 </head>
 <body>
+
+  <header>
+    <h1>Heart Rate Monitor</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="projects.html">Projects</a>
+      <a href="about.html">About</a>
+    </nav>
+  </header>
+
   <section>
     <h1>Heart Rate Monitoring System (MSP430 + Bluetooth)</h1>
 
@@ -61,7 +106,7 @@
       The digitized ECG signal was analyzed in real time to detect R-peaks. Each detected peak represents a heartbeat. The time intervals between these peaks were used to calculate the heart rate (in BPM). The heart rate was computed using:
     </p>
 
-    <p style="text-align:center;"><em>Heart Rate (BPM) = 60 / (Time Interval Between R-peaks in Seconds)</em></p>
+    <p><em>Heart Rate (BPM) = 60 / (Time Interval Between R-peaks in Seconds)</em></p>
 
     <h2>4. ST Elevation Detection</h2>
     <p>
@@ -73,10 +118,7 @@
       A Bluetooth module (e.g., HC-05) was interfaced with the MSP430 using UART. Upon detecting ST elevation, the MSP430 sent an <strong>AT command</strong> to the Bluetooth module to transmit a pre-defined SMS to a paired mobile device.
     </p>
 
-    <p>
-      The AT command used was:
-    </p>
-    <pre style="background:#f0f0f0;padding:1rem;border-left:4px solid #ccc;overflow-x:auto;">AT+CMGS="+1234567890"
+    <pre>AT+CMGS="+1234567890"
 ST elevation detected. Please check the patient immediately.</pre>
 
     <h2>Conclusion</h2>
