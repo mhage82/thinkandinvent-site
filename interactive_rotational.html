@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Crank & CAM Signal Simulator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f8f9fa;
+    }
+    header {
+      background: #004080;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    label {
+      display: inline-block;
+      margin: 1rem 1rem 1rem 0;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      display: block;
+      margin-top: 2rem;
+      width: 100%;
+      height: 200px;
+    }
+    #toothPeriod {
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>Interactive Crank & CAM Signal Simulator</header>
+
+  <label>RPM:
+    <input type="range" id="rpmSlider" min="500" max="6000" step="100" value="1500">
+    <span id="rpmValue">1500</span>
+  </label>
+
+  <div id="toothPeriod">Tooth Period: -- ms</div>
+
+  <canvas id="waveCanvas" width="1000" height="200"></canvas>
+
+  <script>
+    const rpmSlider = document.getElementById("rpmSlider");
+    const rpmValue = document.getElementById("rpmValue");
+    const toothPeriodDisplay = document.getElementById("toothPeriod");
+    const canvas = document.getElementById("waveCanvas");
+    const ctx = canvas.getContext("2d");
+
+    rpmSlider.oninput = () => {
+      rpmValue.textContent = rpmSlider.value;
+      drawWaveform();
+    };
+
+    function drawWaveform() {
+      const rpm = parseInt(rpmSlider.value);
+      const toothCount = 60;
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+
+      const rpmScale = 1500 / rpm; // Base at 1500 RPM
+      const pixelsPerTooth = (canvasWidth / toothCount) * rpmScale;
+
+      const revPerSecond = rpm / 60;
+      const timePerRev = 1000 / revPerSecond; // ms per revolution
+      const timePerTooth = timePerRev / toothCount;
+      toothPeriodDisplay.textContent = `Tooth Period: ${timePerTooth.toFixed(2)} ms`;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+      // Draw crank signal (square wave, except 2-tooth gap)
+      ctx.strokeStyle = "#004080";
+      ctx.beginPath();
+      for (let i = 0; i < toothCount; i++) {
+        const x = i * pixelsPerTooth;
+        const gap = (i === 58 || i === 59);
+        const high = !gap;
+        if (high) {
+          ctx.moveTo(x, canvasHeight / 2);
+          ctx.lineTo(x, 0);
+          ctx.lineTo(x + pixelsPerTooth / 2, 0);
+          ctx.lineTo(x + pixelsPerTooth / 2, canvasHeight / 2);
+        }
+      }
+      ctx.stroke();
+
+      // Draw CAM signal (mock pattern based on crank degrees)
+      ctx.strokeStyle = "#cc0000";
+      ctx.beginPath();
+      let camState = true;
+      let camDurations = [15, 15, 75, 15, 75, 75, 15, 75]; // degrees
+      let degreeToPixel = (pixelsPerTooth * toothCount) / 720;
+      let currentDeg = 0;
+
+      for (let duration of camDurations) {
+        let width = duration * degreeToPixel;
+        let yTop = canvasHeight * 0.75;
+        let yBottom = canvasHeight * 0.5;
+        let y = camState ? yTop : yBottom;
+
+        // vertical edge at start
+        ctx.moveTo(currentDeg * degreeToPixel, yBottom);
+        ctx.lineTo(currentDeg * degreeToPixel, yTop);
+
+        // horizontal level
+        ctx.moveTo(currentDeg * degreeToPixel, y);
+        ctx.lineTo((currentDeg + duration) * degreeToPixel, y);
+
+        camState = !camState;
+        currentDeg += duration;
+      }
+
+      // Final vertical edge
+      ctx.moveTo(currentDeg * degreeToPixel, canvasHeight * 0.5);
+      ctx.lineTo(currentDeg * degreeToPixel, canvasHeight * 0.75);
+      ctx.stroke();
+    }
+
+    drawWaveform(); // initial render
+  </script>
+</body>
+</html>
