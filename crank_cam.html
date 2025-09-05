@@ -67,52 +67,69 @@
     </nav>
   </header>
 
-  <section>
-    <h2>Crank & Cam Signal Generator (SystemC)</h2>
-    <p>
-      This project simulates a 60-2 crankshaft signal and a user-defined camshaft pattern using <strong>SystemC</strong>.
-    </p>
+<section>
+</section>
 
-    <h3>Overview</h3>
-    <p>
-      A virtual crank signal is generated based on configurable RPM and acceleration inputs. The crank signal is modeled with 60 teeth, two of which are missing to create a synchronization gap (60-2). Every tooth is considered to be 6° wide (since 360°/60 = 6°).
-    </p>
 
-    <h3>Acceleration Modeling</h3>
-    <p>
-      Acceleration is modeled as RPM change over time (<code>RPM/sec</code>), allowing the crank signal to smoothly accelerate or decelerate based on the desired target RPM.
-    </p>
+<section>
+<h2>CAM Signal Generation</h2>
+<p>
+The CAMshaft signal is configured with a user-defined pattern.
+The pattern alternates between HIGH and LOW levels for specified angular widths (in degrees).
+</p>
+<p>
+Example:
+<code>{15, 15, 75, 15, 75, 75, 15, 75}</code>
+with a starting level of HIGH would generate:
+HIGH for 15°, LOW for 15°, HIGH for 75°, LOW for 15°, and so on.
+</p>
+<p>
+This pattern repeats over the full 720-degree cycle.
+</p>
+</section>
 
-    <h3>CAM Signal</h3>
-    <p>
-      The CAM signal is defined by a repeating pattern of high/low levels with specified angular widths (in degrees). For example, a pattern like:
-    </p>
-    <code>{15, 15, 75, 15, 75, 75, 15, 75}</code>
-    <p>
-      with a starting level of <code>high</code> will generate a CAM signal with alternating levels over 360°, and this will be repeated to fill a full 720° engine cycle.
-    </p>
 
-    <h3>🔍 CAM Sync Detector</h3>
-    <p>
-      A module detects a unique synchronization pulse on the CAM line — specifically, a 15°-wide high pulse followed by a 15°-wide low pulse — which uniquely identifies a reference point in the engine cycle.
-    </p>
+<section>
+<h2>CAM Sync Detection</h2>
+<p>
+A special 15/15 pulse width is used as a synchronization marker. The system detects a unique CAM pattern
+by identifying consecutive 15° high and low segments.
+</p>
+<p>
+This provides a clear sync point within the engine cycle, enabling cylinder identification and phase alignment.
+</p>
+</section>
 
-    <h3>📎 Code Repository</h3>
-    <p>
-      The full SystemC source code is available on GitHub:<br>
-      <a href="https://github.com/mhage82/rotational_generator.git" target="_blank">
-        https://github.com/mhage82/rotational_generator.git
-      </a>
-    </p>
 
-    <h3>Goals</h3>
-    <ul>
-      <li>Model realistic crank and cam signal generation</li>
-      <li>Enable RPM and acceleration variation</li>
-      <li>Simulate CAM sync points for engine phase detection</li>
-      <li>Eventually integrate with a waveform viewer or interactive frontend</li>
-    </ul>
-  </section>
+<section>
+<h2>Engine Position Tracking</h2>
+<p>
+The crank generator tracks angular position from 0 to 720 degrees and also emits the current tooth index (0–59).
+These are useful for aligning external systems, simulations, or test benches.
+</p>
+</section>
 
+
+<section>
+<h2>Applications</h2>
+<ul>
+<li>Testing embedded software algorithms without real hardware</li>
+<li>Prototyping engine ECUs (virtual HIL)</li>
+<li>Creating synthetic test traces</li>
+<li>Learning tool for internal combustion engine timing</li>
+</ul>
+</section>
+
+
+<section>
+<h2>Source Code</h2>
+<p>
+The full SystemC source code is available on GitHub:
+<br>
+<a href="https://github.com/mhage82/rotational_generator.git" target="_blank">
+https://github.com/mhage82/rotational_generator.git
+</a>
+</p>
+</section>
 </body>
 </html>
