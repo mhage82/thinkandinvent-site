@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Crank & CAM Signal Generator | Think and Invent</title>
+  <title>Crank & Cam Signal Generator | Think and Invent</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,110 +11,108 @@
       background-color: #f8f8f8;
       color: #222;
       margin: 0;
-      padding: 2rem;
+      padding: 0;
     }
+
     header {
-      text-align: center;
-      margin-bottom: 2rem;
+      background-color: #004080;
+      padding: 1rem 2rem;
+      color: white;
     }
-    h1 {
-      color: #004080;
+
+    nav a {
+      color: white;
+      margin-right: 1.5rem;
+      text-decoration: none;
     }
-    h2 {
-      color: #0066cc;
-      margin-top: 2rem;
+
+    nav a:hover {
+      text-decoration: underline;
     }
+
     section {
       max-width: 800px;
       margin: auto;
       background: white;
       padding: 2rem;
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-top: 2rem;
     }
+
+    h1, h2 {
+      color: #004080;
+    }
+
     code {
       background-color: #eee;
-      padding: 2px 4px;
+      padding: 0.2rem 0.4rem;
       border-radius: 4px;
+      font-family: monospace;
     }
+
     a {
       color: #0066cc;
     }
   </style>
 </head>
 <body>
+
   <header>
-    <h1>Crank & CAM Signal Generator</h1>
-    <p>A SystemC-based virtual signal generator project</p>
+    <h1>Think and Invent</h1>
+    <nav>
+      <a href="/index.html">Home</a>
+      <a href="/ai-experience.html">AI Projects</a>
+      <a href="/crank-cam.html">Crank & Cam Simulator</a>
+    </nav>
   </header>
 
   <section>
-    <h2>Project Overview</h2>
+    <h2>Crank & Cam Signal Generator (SystemC)</h2>
     <p>
-      This project models a virtual <strong>60-2 crankshaft</strong> and a configurable <strong>CAM sensor</strong> signal generator using <strong>SystemC</strong>. It simulates engine rotation dynamics in real time, generating output signals and engine position data for use in virtual testing and signal analysis workflows.
+      This project simulates a 60-2 crankshaft signal and a user-defined camshaft pattern using <strong>SystemC</strong>.
     </p>
 
-    <h2>Crank Signal</h2>
+    <h3>Overview</h3>
     <p>
-      The crankshaft signal consists of <strong>60 equally spaced teeth</strong>, but with <strong>2 missing teeth</strong> (tooth indices 58 and 59) to allow synchronization and engine position detection. Each crank tooth represents <code>6 degrees</code> of crank angle.
-    </p>
-    <p>
-      The crank signal is derived from two main inputs:
-      <ul>
-        <li><strong>RPM</strong> – Defines the target engine speed in revolutions per minute</li>
-        <li><strong>Acceleration</strong> – Determines how quickly the engine ramps up or down to the target RPM</li>
-      </ul>
-      Using these, the simulator computes the time between teeth (tooth time) and applies a gap during the missing teeth. This allows downstream systems to align the signal with actual engine revolutions.
+      A virtual crank signal is generated based on configurable RPM and acceleration inputs. The crank signal is modeled with 60 teeth, two of which are missing to create a synchronization gap (60-2). Every tooth is considered to be 6° wide (since 360°/60 = 6°).
     </p>
 
-    <h2>CAM Signal</h2>
+    <h3>Acceleration Modeling</h3>
     <p>
-      The CAMshaft rotates at <strong>half the speed of the crankshaft</strong> and contains fewer features. The signal is generated based on a user-defined pattern of alternating high/low signal levels and their durations (in degrees).
-    </p>
-    <p>
-      For example, a pattern like <code>{15, 15, 75, 15, 75, 75, 15, 75}</code> means the CAM signal:
-      <ul>
-        <li>Starts high for 15 degrees</li>
-        <li>Goes low for 15 degrees</li>
-        <li>High for 75 degrees</li>
-        <li>Low for 15, and so on...</li>
-      </ul>
-      This pattern is repeated over a full 720-degree crank rotation, and each segment aligns with crank angle degrees for accurate synchronization.
+      Acceleration is modeled as RPM change over time (<code>RPM/sec</code>), allowing the crank signal to smoothly accelerate or decelerate based on the desired target RPM.
     </p>
 
-    <h2>Synchronization and Detection</h2>
+    <h3>CAM Signal</h3>
     <p>
-      To determine engine phase, the CAM pattern includes a <strong>unique synchronization pulse</strong>, usually a 15/15 high-low pair. A dedicated module, the <code>CamSyncDetector</code>, monitors signal transitions and pulse widths to detect this signature event, which indicates the beginning of a new engine cycle.
+      The CAM signal is defined by a repeating pattern of high/low levels with specified angular widths (in degrees). For example, a pattern like:
+    </p>
+    <code>{15, 15, 75, 15, 75, 75, 15, 75}</code>
+    <p>
+      with a starting level of <code>high</code> will generate a CAM signal with alternating levels over 360°, and this will be repeated to fill a full 720° engine cycle.
     </p>
 
-    <h2>Engine Position Tracking</h2>
+    <h3>🔍 CAM Sync Detector</h3>
     <p>
-      As the crank signal progresses, an <code>angle_deg</code> value is continuously published to represent the current crankshaft angle in the range <code>0 - 720 degrees</code>. This allows the CAM module and other peripherals to react accordingly to real engine timing.
+      A module detects a unique synchronization pulse on the CAM line — specifically, a 15°-wide high pulse followed by a 15°-wide low pulse — which uniquely identifies a reference point in the engine cycle.
     </p>
 
-    <h2>Use Cases</h2>
+    <h3>📎 Code Repository</h3>
+    <p>
+      The full SystemC source code is available on GitHub:<br>
+      <a href="https://github.com/mhage82/rotational_generator.git" target="_blank">
+        https://github.com/mhage82/rotational_generator.git
+      </a>
+    </p>
+
+    <h3>Goals</h3>
     <ul>
-      <li>Virtual signal testing for ECUs without physical hardware</li>
-      <li>Debugging software that relies on crank/CAM input</li>
-      <li>Validating synchronization logic</li>
+      <li>Model realistic crank and cam signal generation</li>
+      <li>Enable RPM and acceleration variation</li>
+      <li>Simulate CAM sync points for engine phase detection</li>
+      <li>Eventually integrate with a waveform viewer or interactive frontend</li>
     </ul>
-
-    <h2>Next Steps</h2>
-    <p>
-      The project can be extended with features such as:
-      <ul>
-        <li>Fuel/spark injection events</li>
-        <li>Misfire simulation</li>
-        <li>Graphical interface for interactive simulation</li>
-      </ul>
-    </p>
-
-    <h2>View the Source Code</h2>
-    <p>
-      The full SystemC source code is available on GitHub:
-      <br>
-      <em>https://github.com/mhage82/rotational_generator.git</em>
-    </p>
   </section>
+
 </body>
 </html>
