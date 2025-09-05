@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crank & CAM Signal Generator | Think and Invent</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      background-color: #f8f8f8;
+      color: #222;
+      margin: 0;
+      padding: 2rem;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    h1 {
+      color: #004080;
+    }
+    h2 {
+      color: #0066cc;
+      margin-top: 2rem;
+    }
+    section {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    code {
+      background-color: #eee;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    a {
+      color: #0066cc;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Crank & CAM Signal Generator</h1>
+    <p>A SystemC-based virtual signal generator project</p>
+  </header>
+
+  <section>
+    <h2>Project Overview</h2>
+    <p>
+      This project models a virtual <strong>60-2 crankshaft</strong> and a configurable <strong>CAM sensor</strong> signal generator using <strong>SystemC</strong>. It simulates engine rotation dynamics in real time, generating output signals and engine position data for use in virtual testing and signal analysis workflows.
+    </p>
+
+    <h2>Crank Signal</h2>
+    <p>
+      The crankshaft signal consists of <strong>60 equally spaced teeth</strong>, but with <strong>2 missing teeth</strong> (tooth indices 58 and 59) to allow synchronization and engine position detection. Each crank tooth represents <code>6 degrees</code> of crank angle.
+    </p>
+    <p>
+      The crank signal is derived from two main inputs:
+      <ul>
+        <li><strong>RPM</strong> – Defines the target engine speed in revolutions per minute</li>
+        <li><strong>Acceleration</strong> – Determines how quickly the engine ramps up or down to the target RPM</li>
+      </ul>
+      Using these, the simulator computes the time between teeth (tooth time) and applies a gap during the missing teeth. This allows downstream systems to align the signal with actual engine revolutions.
+    </p>
+
+    <h2>CAM Signal</h2>
+    <p>
+      The CAMshaft rotates at <strong>half the speed of the crankshaft</strong> and contains fewer features. The signal is generated based on a user-defined pattern of alternating high/low signal levels and their durations (in degrees).
+    </p>
+    <p>
+      For example, a pattern like <code>{15, 15, 75, 15, 75, 75, 15, 75}</code> means the CAM signal:
+      <ul>
+        <li>Starts high for 15 degrees</li>
+        <li>Goes low for 15 degrees</li>
+        <li>High for 75 degrees</li>
+        <li>Low for 15, and so on...</li>
+      </ul>
+      This pattern is repeated over a full 720-degree crank rotation, and each segment aligns with crank angle degrees for accurate synchronization.
+    </p>
+
+    <h2>Synchronization and Detection</h2>
+    <p>
+      To determine engine phase, the CAM pattern includes a <strong>unique synchronization pulse</strong>, usually a 15/15 high-low pair. A dedicated module, the <code>CamSyncDetector</code>, monitors signal transitions and pulse widths to detect this signature event, which indicates the beginning of a new engine cycle.
+    </p>
+
+    <h2>Engine Position Tracking</h2>
+    <p>
+      As the crank signal progresses, an <code>angle_deg</code> value is continuously published to represent the current crankshaft angle in the range <code>0 - 720 degrees</code>. This allows the CAM module and other peripherals to react accordingly to real engine timing.
+    </p>
+
+    <h2>Use Cases</h2>
+    <ul>
+      <li>Virtual signal testing for ECUs without physical hardware</li>
+      <li>Debugging software that relies on crank/CAM input</li>
+      <li>Validating synchronization logic</li>
+    </ul>
+
+    <h2>Next Steps</h2>
+    <p>
+      The project can be extended with features such as:
+      <ul>
+        <li>Fuel/spark injection events</li>
+        <li>Misfire simulation</li>
+        <li>Graphical interface for interactive simulation</li>
+      </ul>
+    </p>
+
+    <h2>View the Source Code</h2>
+    <p>
+      The full SystemC source code is available on GitHub:
+      <br>
+      <em>(Link will be added here soon)</em>
+    </p>
+  </section>
+</body>
+</html>
