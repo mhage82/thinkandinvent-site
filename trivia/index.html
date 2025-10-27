@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lebanese Engineers Trivia — Think & Invent</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="cedar">🇱🇧</span>
+      <span class="title">Lebanese Engineers Trivia</span>
+    </div>
+    <div id="global-timer" class="timer hidden" aria-live="polite">05:00</div>
+  </header>
+
+  <main class="container">
+    <!-- Welcome / Name -->
+    <section id="welcome-screen" class="card">
+      <h1>Welcome!</h1>
+      <p>Test your knowledge of Lebanese heritage and engineering. You have <strong>5 minutes total</strong>. Unanswered questions are marked wrong. Ties are broken by <strong>fastest time</strong>.</p>
+
+      <label for="player-name" class="field-label">Your Name</label>
+      <input id="player-name" class="input" type="text" placeholder="e.g., Rana S." maxlength="60" />
+
+      <button id="start-btn" class="btn-primary">Start Quiz</button>
+      <p class="help">Timer starts when you press <em>Start Quiz</em>.</p>
+    </section>
+
+    <!-- Quiz -->
+    <section id="quiz-screen" class="card hidden" aria-live="polite">
+      <div class="top-row">
+        <div id="progress" class="progress">Question <span id="q-idx">1</span>/<span id="q-total">15</span></div>
+        <div id="countdown" class="countdown">Time Remaining: <span id="time-remaining">05:00</span></div>
+      </div>
+
+      <h2 id="question-text" class="question"></h2>
+      <div id="answers" class="answers"></div>
+
+      <div class="nav-row">
+        <button id="prev-btn" class="btn" disabled>Previous</button>
+        <button id="next-btn" class="btn">Next</button>
+        <button id="submit-btn" class="btn-primary">Submit</button>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="result-screen" class="card hidden">
+      <h2>Thank you, <span id="res-name">Player</span>!</h2>
+      <p>You scored <strong><span id="res-score">0</span>/<span id="res-total">0</span></strong> in <strong><span id="res-time">0:00</span></strong>.</p>
+      <p id="submit-note" class="muted"></p>
+
+      <div id="post-status" class="status muted"></div>
+
+      <details class="details">
+        <summary>See your answers</summary>
+        <div id="answer-review"></div>
+      </details>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>© Think & Invent</span>
+  </footer>
+
+  <script src="questions.js"></script>
+  <script src="submit.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
