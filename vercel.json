@@ -1,0 +1,8 @@
+{
+    "builds": [
+      { "src": "trivia/**", "use": "@vercel/static" }
+    ],
+    "routes": [
+      { "src": "/trivia/(.*)", "dest": "/trivia/$1" }
+    ]
+  }
