@@ -93,4 +93,24 @@
   .status{margin-top:10px; font-size:.95rem}
   
   .app-footer{display:flex; justify-content:center; align-items:center; gap:10px}
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
   
+  .leaderboard-table th,
+  .leaderboard-table td {
+    border-bottom: 1px solid var(--border);
+    padding: 6px 8px;
+    text-align: center;
+  }
+  
+  .leaderboard-table tr:nth-child(1) td { color: gold; font-weight: 700; }
+  .leaderboard-table tr:nth-child(2) td { color: silver; }
+  .leaderboard-table tr:nth-child(3) td { color: #cd7f32; }
+  
+  #leaderboard {
+    margin-top: 24px;
+    background: rgba(255, 255, 255, 0.04);
+  }
