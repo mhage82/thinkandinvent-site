@@ -188,27 +188,44 @@ import { database, ref, push, set, onValue } from "./firebase.js";
   }
 
   // Leaderboard live updates
-  function loadLeaderboard() {
-    const leaderboardRef = ref(database, "scores");
-    onValue(leaderboardRef, (snapshot) => {
-      const data = snapshot.val();
-      if (!data) return;
-      const scores = Object.values(data)
-        .sort((a, b) => b.score - a.score || a.time - b.time)
-        .slice(0, 3);
-      leaderboardEl.innerHTML = `
-        <table class="leaderboard-table">
-          <tr><th>Rank</th><th>Name</th><th>Score</th><th>Time</th></tr>
-          ${scores
-            .map(
-              (s, i) =>
-                `<tr><td>${i + 1}</td><td>${s.name}</td><td>${s.score}</td><td>${s.time}s</td></tr>`
-            )
-            .join("")}
-        </table>
-      `;
-    });
-  }
+function loadLeaderboard() {
+  const leaderboardRef = ref(database, "scores");
+  onValue(leaderboardRef, (snapshot) => {
+    const data = snapshot.val();
+
+    // Safety check: don't do anything if leaderboardEl is missing
+    if (!leaderboardEl) {
+      console.warn("Leaderboard element not found in DOM yet.");
+      return;
+    }
+
+    if (!data) {
+      leaderboardEl.innerHTML = "<p>No scores yet. Be the first to play!</p>";
+      return;
+    }
+
+    const scores = Object.values(data)
+      .sort((a, b) => b.score - a.score || a.time - b.time)
+      .slice(0, 3);
+
+    leaderboardEl.innerHTML = `
+      <table class="leaderboard-table">
+        <tr><th>Rank</th><th>Name</th><th>Score</th><th>Time</th></tr>
+        ${scores
+          .map(
+            (s, i) =>
+              `<tr>
+                 <td>${i + 1}</td>
+                 <td>${s.name}</td>
+                 <td>${s.score}</td>
+                 <td>${s.time}s</td>
+               </tr>`
+          )
+          .join("")}
+      </table>
+    `;
+  });
+}
 
   // Event listeners
   startBtn.addEventListener("click", () => {
