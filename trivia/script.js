@@ -167,7 +167,7 @@ import { database, ref, push, set, onValue } from "./firebase.js";
       const leaderboardRef = ref(database, "scores");
       const newRef = push(leaderboardRef);
       await set(newRef, {
-        name: playerName,
+        email: playerName, // using same variable
         score: finalScore,
         time: elapsedSec,
         submittedAt: Date.now()
@@ -227,16 +227,54 @@ function loadLeaderboard() {
   });
 }
 
-  // Event listeners
-  startBtn.addEventListener("click", () => {
-    const val = (nameInput.value || "").trim();
-    if (!val) {
-      nameInput.focus();
-      nameInput.classList.add("shake");
-      setTimeout(() => nameInput.classList.remove("shake"), 600);
+  // Check if the email already exists in Firebase
+  async function hasPlayedBefore(email) {
+    return new Promise((resolve) => {
+      const leaderboardRef = ref(database, "scores");
+      onValue(
+        leaderboardRef,
+        (snapshot) => {
+          const data = snapshot.val();
+          if (!data) {
+            resolve(false);
+            return;
+          }
+          const values = Object.values(data);
+          const exists = values.some(
+            (entry) => entry.email && entry.email.toLowerCase() === email.toLowerCase()
+          );
+          resolve(exists);
+        },
+        { onlyOnce: true }
+      );
+    });
+  }
+
+  // Handle Start Button Click
+  startBtn.addEventListener("click", async () => {
+    const emailInput = $("#player-email");
+    const email = (emailInput.value || "").trim().toLowerCase();
+
+    if (!email) {
+      emailInput.focus();
+      emailInput.classList.add("shake");
+      setTimeout(() => emailInput.classList.remove("shake"), 600);
       return;
     }
-    playerName = val;
+
+    // Check Firebase
+    const alreadyPlayed = await hasPlayedBefore(email);
+    if (alreadyPlayed) {
+      const error = $("#email-error");
+      error.style.display = "block";
+      emailInput.classList.add("shake");
+      setTimeout(() => emailInput.classList.remove("shake"), 600);
+      return;
+    }
+
+    // Allow the quiz
+    playerName = email; // reuse variable for compatibility
+    $("#email-error").style.display = "none";
     welcomeScreen.classList.add("hidden");
     quizScreen.classList.remove("hidden");
     startGlobalTimer();
