@@ -216,7 +216,7 @@ function loadLeaderboard() {
             (s, i) =>
               `<tr>
                  <td>${i + 1}</td>
-                 <td>${s.name}</td>
+                 <td>${s.email || "Anonymous"}</td>
                  <td>${s.score}</td>
                  <td>${s.time}s</td>
                </tr>`

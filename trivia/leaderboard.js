@@ -17,7 +17,11 @@ export function startLeaderboardUpdates() {
         ${scores
           .map(
             (s, i) =>
-              `<tr><td>${i + 1}</td><td>${s.name}</td><td>${s.score}</td><td>${(s.time / 1000).toFixed(2)}s</td></tr>`
+              `<tr><td>${i + 1}</td>
+                   <td>${s.email || "Anonymous"}</td>
+                   <td>${s.score}</td>
+                   <td>${(s.time / 1000).toFixed(2)}s</td>
+               </tr>`
           )
           .join("")}
       </table>
