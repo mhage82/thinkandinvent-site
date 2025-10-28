@@ -1,34 +1,26 @@
-import { db, ref, onValue } from "./firebase.js";
+import { database, ref, onValue } from "./firebase.js";
 
-const leaderboardSection = document.getElementById("leaderboard");
-const leaderboardBody = document.getElementById("leaderboard-body");
+export function startLeaderboardUpdates() {
+  const leaderboardRef = ref(database, "scores");
+  const leaderboardTable = document.getElementById("leaderboard");
 
-function renderLeaderboard(players) {
-  players.sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    return a.totalTimeSeconds - b.totalTimeSeconds;
-  });
+  onValue(leaderboardRef, (snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
+    const scores = Object.values(data)
+      .sort((a, b) => b.score - a.score || a.time - b.time)
+      .slice(0, 3);
 
-  const top3 = players.slice(0, 3);
-  leaderboardBody.innerHTML = "";
-  top3.forEach((p, i) => {
-    const medal = ["🥇", "🥈", "🥉"][i] || i + 1;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${medal}</td>
-      <td>${p.name}</td>
-      <td>${p.score}</td>
-      <td>${p.totalTimeSeconds}</td>
+    leaderboardTable.innerHTML = `
+      <table class="leaderboard-table">
+        <tr><th>Rank</th><th>Name</th><th>Score</th><th>Time</th></tr>
+        ${scores
+          .map(
+            (s, i) =>
+              `<tr><td>${i + 1}</td><td>${s.name}</td><td>${s.score}</td><td>${(s.time / 1000).toFixed(2)}s</td></tr>`
+          )
+          .join("")}
+      </table>
     `;
-    leaderboardBody.appendChild(tr);
   });
-
-  leaderboardSection.classList.remove("hidden");
 }
-
-// Live listener — automatically updates all browsers in real time
-onValue(ref(db, "scores"), (snapshot) => {
-  const data = snapshot.val() || {};
-  const players = Object.values(data);
-  renderLeaderboard(players);
-});

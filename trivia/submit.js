@@ -1,17 +1,12 @@
-import { db, ref, push } from "./firebase.js";
+import { database, ref, push, set } from "./firebase.js";
 
-export async function postResult({ name, score, totalQuestions, totalTimeSeconds, submittedBy }) {
-  try {
-    await push(ref(db, "scores"), {
-      name,
-      score,
-      totalQuestions,
-      totalTimeSeconds,
-      submittedBy,
-      timestamp: Date.now()
-    });
-    console.log("Score submitted:", name, score);
-  } catch (err) {
-    console.error("Error submitting score:", err);
-  }
+function saveScoreToFirebase(name, score, timeTaken) {
+  const leaderboardRef = ref(database, "scores");
+  const newScoreRef = push(leaderboardRef);
+  set(newScoreRef, {
+    name: name,
+    score: score,
+    time: timeTaken,
+    timestamp: Date.now()
+  });
 }
