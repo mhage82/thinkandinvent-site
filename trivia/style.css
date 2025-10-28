@@ -1,35 +1,46 @@
+/* ==========================================================================
+   LEBANESE ENGINEERS TRIVIA - STYLE.CSS
+   ==========================================================================
+   Modern dark mode layout with Lebanese color palette, responsive for mobile
+   -------------------------------------------------------------------------- */
+
 :root {
-  /* Lebanese-inspired dark theme */
-  --background: #0b0f14;          /* dark navy background */
-  --card-bg: #101720;             /* card background */
-  --text: #f5f7fa;                /* main text (light) */
-  --muted: #9ca3af;               /* secondary text */
-  --accent: #009d5c;              /* cedar green */
-  --accent-hover: #00c06a;        /* lighter cedar */
-  --button-bg: #c8102e;           /* Lebanese red */
-  --button-hover: #e03c50;        /* lighter red */
-  --border: #1f2937;              /* subtle border */
-  --correct: #10b981;             /* success green */
-  --wrong: #ef4444;               /* error red */
+  /* Color palette inspired by Lebanese flag */
+  --background: #0b0f14;
+  --card-bg: #0f1620;
+  --text-color: #f9f9f9;
+  --muted: #9ca3af;
+  --accent: #007a50;       /* cedar green */
+  --accent-hover: #00a266;
+  --button-bg: #d00000;     /* flag red */
+  --button-hover: #ff1a1a;
+  --border: #1e293b;
+  --correct: #10b981;
+  --wrong: #ef4444;
   --radius: 12px;
-  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  --shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Global Reset */
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; height: 100%; }
+/* ==================== GLOBAL BASE ==================== */
+* {
+  box-sizing: border-box;
+}
 
-body {
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  color: var(--text);
-  background: linear-gradient(180deg, var(--background) 0%, #0d1218 100%);
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  background: var(--background);
+  color: var(--text-color);
   display: flex;
   flex-direction: column;
 }
 
-/* Header + Footer */
+/* ==================== HEADER / FOOTER ==================== */
 .app-header, .app-footer {
   padding: 16px 20px;
+  background: #0f1620;
   border-bottom: 1px solid var(--border);
 }
 
@@ -39,24 +50,25 @@ body {
   margin-top: auto;
   color: var(--muted);
   font-size: 14px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
+  text-align: center;
 }
 
-/* Branding */
-.brand { display: flex; gap: 12px; align-items: center; font-weight: 700; color: var(--accent); }
-.title { letter-spacing: .3px; font-weight: 700; font-size: 1.2rem; color: var(--accent-hover); }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.3px;
+}
 
 .timer {
   margin-left: auto;
   font-variant-numeric: tabular-nums;
-  color: var(--button-bg);
-  font-weight: 600;
+  color: var(--muted);
 }
 
-/* Layout Containers */
+/* ==================== LAYOUT ==================== */
 .container {
   width: min(900px, 92%);
   margin: 24px auto;
@@ -70,14 +82,14 @@ body {
   box-shadow: var(--shadow);
 }
 
-/* Text Styling */
+/* ==================== TEXT ==================== */
 h1, h2 {
   margin: 8px 0 14px;
-  color: var(--accent-hover);
+  color: var(--text-color);
 }
 
 p {
-  color: var(--text);
+  color: var(--text-color);
   opacity: 0.95;
 }
 
@@ -85,7 +97,7 @@ p {
   color: var(--muted);
 }
 
-/* Inputs */
+/* ==================== INPUTS ==================== */
 .field-label {
   display: block;
   margin-top: 12px;
@@ -98,31 +110,33 @@ p {
   padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: #131b24;
-  color: var(--text);
+  background: #0d131a;
+  color: var(--text-color);
   outline: none;
 }
 
 .input:focus {
-  border-color: var(--accent-hover);
-  box-shadow: 0 0 0 1px var(--accent-hover);
+  border-color: var(--accent);
 }
 
-/* Buttons */
-.btn, .btn-primary {
+/* ==================== BUTTONS ==================== */
+.btn,
+.btn-primary {
   border: none;
-  background: var(--button-bg);
-  color: #fff;
-  padding: 10px 18px;
-  border-radius: var(--radius);
   cursor: pointer;
+  padding: 12px 18px;
+  border-radius: 10px;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: background 0.2s, transform 0.1s;
 }
 
-.btn:hover, .btn-primary:hover {
-  background: var(--button-hover);
-  transform: translateY(-1px);
+.btn {
+  background: #1a2430;
+  color: var(--text-color);
+}
+
+.btn:hover {
+  background: #222c3b;
 }
 
 .btn:disabled {
@@ -130,69 +144,85 @@ p {
   cursor: not-allowed;
 }
 
-/* Question Section */
+.btn-primary {
+  background: var(--button-bg);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--button-hover);
+  transform: scale(1.02);
+}
+
+/* ==================== QUIZ UI ==================== */
 .top-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
   margin-bottom: 14px;
+  font-size: 0.9rem;
 }
 
-.progress, .countdown {
+.progress {
   color: var(--muted);
-  font-size: 0.95rem;
 }
 
-.countdown.warning { color: #ffb454; }
-.countdown.danger { color: var(--wrong); }
+.countdown {
+  color: var(--muted);
+}
+
+.countdown.warning {
+  color: #ffb454;
+}
+
+.countdown.danger {
+  color: #ff4d4d;
+}
 
 .question {
-  font-size: 1.25rem;
-  margin: 10px 0 18px;
-  line-height: 1.4;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 10px 0 14px;
 }
 
-/* Answer Buttons */
+/* ==================== ANSWERS ==================== */
 .answers {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .answer {
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px 16px;
-  background: #131b24;
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #151d27;
   cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.25s ease;
-  color: var(--text);
+  transition: background 0.2s ease, transform 0.1s ease;
+  text-align: left;
 }
 
 .answer:hover {
-  background: #18212d;
-  border-color: var(--accent-hover);
+  background: #192430;
+  transform: scale(1.02);
 }
 
 .answer.selected {
   outline: 2px solid var(--accent);
-  background: rgba(0, 157, 92, 0.15);
+  background: #0d2f23;
 }
 
 .answer.correct {
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(31, 191, 117, 0.1);
   border-color: var(--correct);
-  color: var(--correct);
 }
 
 .answer.wrong {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(224, 79, 79, 0.1);
   border-color: var(--wrong);
-  color: var(--wrong);
 }
 
-/* Navigation Buttons */
+/* ==================== NAVIGATION ==================== */
 .nav-row {
   display: flex;
   gap: 10px;
@@ -200,11 +230,9 @@ p {
   justify-content: flex-end;
 }
 
-.hidden { display: none; }
-
-/* Extra Info */
-.details {
-  margin-top: 16px;
+/* ==================== STATUS / LEADERBOARD ==================== */
+.hidden {
+  display: none;
 }
 
 .status {
@@ -212,29 +240,131 @@ p {
   font-size: 0.95rem;
 }
 
-/* Leaderboard */
 .leaderboard-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
-  background: var(--card-bg);
-  border-radius: var(--radius);
+  margin-top: 16px;
+  font-size: 0.95rem;
 }
 
-.leaderboard-table th, .leaderboard-table td {
+.leaderboard-table th,
+.leaderboard-table td {
   border-bottom: 1px solid var(--border);
-  padding: 10px 8px;
+  padding: 8px 10px;
   text-align: center;
-  color: var(--text);
 }
 
-.leaderboard-table tr:nth-child(1) td { color: gold; font-weight: 700; }
-.leaderboard-table tr:nth-child(2) td { color: silver; }
-.leaderboard-table tr:nth-child(3) td { color: #cd7f32; }
+.leaderboard-table tr:nth-child(1) td {
+  color: gold;
+  font-weight: 700;
+}
 
-#leaderboard {
-  margin-top: 24px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: var(--radius);
-  padding: 16px;
+.leaderboard-table tr:nth-child(2) td {
+  color: silver;
+}
+
+.leaderboard-table tr:nth-child(3) td {
+  color: #cd7f32;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media (max-width: 768px) {
+  body {
+    font-size: 16px;
+    padding: 8px;
+  }
+
+  .container {
+    width: 95%;
+    margin: 10px auto;
+    padding: 0;
+  }
+
+  .card {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  h1, h2 {
+    font-size: 1.3rem;
+    text-align: center;
+  }
+
+  .question {
+    font-size: 1rem;
+  }
+
+  .answers {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .answer {
+    font-size: 1rem;
+    padding: 14px 12px;
+    text-align: center;
+  }
+
+  .btn, .btn-primary {
+    width: 100%;
+    font-size: 1.1rem;
+    padding: 12px;
+    margin-top: 8px;
+  }
+
+  .nav-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #global-timer {
+    font-size: 1rem;
+    text-align: right;
+    margin-bottom: 8px;
+  }
+
+  .leaderboard-table {
+    font-size: 0.9rem;
+  }
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 6px 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.1rem;
+  }
+
+  .answer {
+    font-size: 0.9rem;
+    padding: 12px;
+  }
+
+  .btn, .btn-primary {
+    font-size: 1rem;
+  }
+
+  .leaderboard-table {
+    font-size: 0.85rem;
+  }
+}
+
+/* ==================== INTERACTIVE FEEDBACK ==================== */
+.answer:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+}
+
+/* Sticky nav for better mobile UX */
+@media (max-width: 768px) {
+  .nav-row {
+    position: sticky;
+    bottom: 0;
+    background: #0f1620;
+    padding: 10px;
+    border-top: 1px solid var(--border);
+  }
 }
