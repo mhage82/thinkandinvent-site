@@ -97,7 +97,8 @@ import { database, ref, push, set, onValue } from "./firebase.js";
       btn.className = "answer";
       btn.textContent = choice;
 
-      if (selected[idx] !== null && i === selected[idx]) {
+      // Restore previously selected answer
+      if (selected[idx] === i) {
         btn.classList.add("selected");
       }
 
@@ -110,18 +111,14 @@ import { database, ref, push, set, onValue } from "./firebase.js";
   }
 
   function onSelect(idx, answerIdx) {
-    // Allow changing selection before submission
+    // Save new selection
     selected[idx] = answerIdx;
 
-    // Reset all answer buttons for this question
+    // Update button visuals dynamically
     const buttons = [...answersEl.children];
     buttons.forEach((btn, i) => {
-      btn.classList.remove("selected");
-      btn.style.pointerEvents = "auto"; // keep clickable
+      btn.classList.toggle("selected", i === answerIdx);
     });
-
-    // Highlight the new selection
-    buttons[answerIdx].classList.add("selected");
   }
 
   function calcScore() {
