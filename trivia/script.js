@@ -97,7 +97,7 @@ import { database, ref, push, set, onValue } from "./firebase.js";
       btn.className = "answer";
       btn.textContent = choice;
 
-      // Restore previously selected answer
+      // Restore previous selection
       if (selected[idx] === i) {
         btn.classList.add("selected");
       }
@@ -106,8 +106,14 @@ import { database, ref, push, set, onValue } from "./firebase.js";
       answersEl.appendChild(btn);
     });
 
+    // Manage navigation button visibility
     prevBtn.disabled = idx === 0;
-    nextBtn.disabled = idx === totalQ - 1;
+
+    // Show Next for all except the last question
+    nextBtn.style.display = idx < totalQ - 1 ? "inline-block" : "none";
+
+    // Show Submit only on last question
+    submitBtn.style.display = idx === totalQ - 1 ? "inline-block" : "none";
   }
 
   function onSelect(idx, answerIdx) {
