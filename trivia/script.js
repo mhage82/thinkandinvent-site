@@ -110,15 +110,18 @@ import { database, ref, push, set, onValue } from "./firebase.js";
   }
 
   function onSelect(idx, answerIdx) {
-    if (selected[idx] !== null) return;
+    // Allow changing selection before submission
     selected[idx] = answerIdx;
 
-    // Lock answers visually
+    // Reset all answer buttons for this question
     const buttons = [...answersEl.children];
     buttons.forEach((btn, i) => {
-      if (i === answerIdx) btn.classList.add("selected");
-      btn.style.pointerEvents = "none";
+      btn.classList.remove("selected");
+      btn.style.pointerEvents = "auto"; // keep clickable
     });
+
+    // Highlight the new selection
+    buttons[answerIdx].classList.add("selected");
   }
 
   function calcScore() {
