@@ -1,24 +1,25 @@
 /* ==========================================================================
-   LEBANESE ENGINEERS TRIVIA - STYLE.CSS
+   LEBANESE ENGINEERS TRIVIA - LIGHT THEME
    ==========================================================================
-   Modern dark mode layout with Lebanese color palette, responsive for mobile
+   Bright, high-contrast palette for readability under bright lighting.
+   Still uses Lebanese red + cedar green branding.
    -------------------------------------------------------------------------- */
 
 :root {
-  /* Color palette inspired by Lebanese flag */
-  --background: #0b0f14;
-  --card-bg: #0f1620;
-  --text-color: #f9f9f9;
-  --muted: #9ca3af;
-  --accent: #007a50;       /* cedar green */
-  --accent-hover: #00a266;
-  --button-bg: #d00000;     /* flag red */
-  --button-hover: #ff1a1a;
-  --border: #1e293b;
-  --correct: #10b981;
-  --wrong: #ef4444;
+  /* Lebanese palette */
+  --background: #fafafa;            /* bright neutral background */
+  --card-bg: #ffffff;               /* white cards */
+  --text-color: #1a1a1a;            /* dark readable text */
+  --muted: #4b5563;                 /* secondary text */
+  --accent: #006b45;                /* cedar green */
+  --accent-hover: #00935c;
+  --button-bg: #d00000;             /* Lebanese flag red */
+  --button-hover: #ff2a2a;
+  --border: #d1d5db;                /* soft gray borders */
+  --correct: #10b981;               /* success green */
+  --wrong: #ef4444;                 /* error red */
   --radius: 12px;
-  --shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* ==================== GLOBAL BASE ==================== */
@@ -40,7 +41,7 @@ html, body {
 /* ==================== HEADER / FOOTER ==================== */
 .app-header, .app-footer {
   padding: 16px 20px;
-  background: #0f1620;
+  background: #ffffff;
   border-bottom: 1px solid var(--border);
 }
 
@@ -110,13 +111,14 @@ p {
   padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: #0d131a;
+  background: #ffffff;
   color: var(--text-color);
   outline: none;
 }
 
 .input:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0, 107, 69, 0.15);
 }
 
 /* ==================== BUTTONS ==================== */
@@ -131,12 +133,12 @@ p {
 }
 
 .btn {
-  background: #1a2430;
+  background: #f3f4f6;
   color: var(--text-color);
 }
 
 .btn:hover {
-  background: #222c3b;
+  background: #e5e7eb;
 }
 
 .btn:disabled {
@@ -173,11 +175,11 @@ p {
 }
 
 .countdown.warning {
-  color: #ffb454;
+  color: #eab308;
 }
 
 .countdown.danger {
-  color: #ff4d4d;
+  color: var(--wrong);
 }
 
 .question {
@@ -196,29 +198,29 @@ p {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 12px 14px;
-  background: #151d27;
+  background: #f9fafb;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.1s ease;
   text-align: left;
 }
 
 .answer:hover {
-  background: #192430;
+  background: #f0fdf4;
   transform: scale(1.02);
 }
 
 .answer.selected {
   outline: 2px solid var(--accent);
-  background: #0d2f23;
+  background: #e7f8ef;
 }
 
 .answer.correct {
-  background: rgba(31, 191, 117, 0.1);
+  background: rgba(16, 185, 129, 0.15);
   border-color: var(--correct);
 }
 
 .answer.wrong {
-  background: rgba(224, 79, 79, 0.1);
+  background: rgba(239, 68, 68, 0.1);
   border-color: var(--wrong);
 }
 
@@ -255,16 +257,16 @@ p {
 }
 
 .leaderboard-table tr:nth-child(1) td {
-  color: gold;
+  color: #d97706;
   font-weight: 700;
 }
 
 .leaderboard-table tr:nth-child(2) td {
-  color: silver;
+  color: #6b7280;
 }
 
 .leaderboard-table tr:nth-child(3) td {
-  color: #cd7f32;
+  color: #92400e;
 }
 
 /* ==================== RESPONSIVE DESIGN ==================== */
@@ -355,7 +357,7 @@ p {
 /* ==================== INTERACTIVE FEEDBACK ==================== */
 .answer:active {
   transform: scale(0.97);
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 /* Sticky nav for better mobile UX */
@@ -363,7 +365,7 @@ p {
   .nav-row {
     position: sticky;
     bottom: 0;
-    background: #0f1620;
+    background: #ffffff;
     padding: 10px;
     border-top: 1px solid var(--border);
   }
