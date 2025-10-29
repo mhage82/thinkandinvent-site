@@ -87,34 +87,37 @@ import { database, ref, push, set, onValue } from "./firebase.js";
   }
 
   function renderQuestion(idx) {
-    const q = questions[idx];
-    qIdxEl.textContent = (idx + 1).toString();
-    qText.textContent = q.text;
-    answersEl.innerHTML = "";
+  const q = questions[idx];
+  qIdxEl.textContent = (idx + 1).toString();
+  qText.textContent = q.text;
+  answersEl.innerHTML = "";
 
-    q.choices.forEach((choice, i) => {
-      const btn = document.createElement("button");
-      btn.className = "answer";
-      btn.textContent = choice;
+  q.choices.forEach((choice, i) => {
+    const btn = document.createElement("button");
+    btn.className = "answer";
+    btn.textContent = choice;
 
-      // Restore previous selection
-      if (selected[idx] === i) {
-        btn.classList.add("selected");
-      }
+    if (selected[idx] === i) {
+      btn.classList.add("selected");
+    }
 
-      btn.addEventListener("click", () => onSelect(idx, i));
-      answersEl.appendChild(btn);
-    });
+    btn.addEventListener("click", () => onSelect(idx, i));
+    answersEl.appendChild(btn);
+  });
 
-    // Manage navigation button visibility
-    prevBtn.disabled = idx === 0;
+  // Handle navigation buttons
+  prevBtn.disabled = idx === 0;
 
-    // Show Next for all except the last question
-    nextBtn.style.display = idx < totalQ - 1 ? "inline-block" : "none";
-
-    // Show Submit only on last question
-    submitBtn.style.display = idx === totalQ - 1 ? "inline-block" : "none";
+  // Show "Next" for all except last question
+  if (idx < totalQ - 1) {
+    nextBtn.style.display = "inline-block";
+    submitBtn.style.display = "none";
+  } else {
+    // Last question: hide Next, show Submit
+    nextBtn.style.display = "none";
+    submitBtn.style.display = "inline-block";
   }
+}
 
   function onSelect(idx, answerIdx) {
     // Save new selection
