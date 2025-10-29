@@ -9,11 +9,11 @@ window.TRIVIA_QUESTIONS = [
       text: "Baalbek’s Roman complex is famous for engineering with some of the world’s heaviest stones. What are the 'Trilithon' blocks?",
       choices: [
         "Three cedar wood beams",
-        "Three foundation stones ~800–1000 tons each",
         "Three bronze arches",
+        "Three foundation stones ~800–1000 tons each",
         "Three granite columns"
       ],
-      correctIndex: 1
+      correctIndex: 2
     },
     {
       text: "The cedar on Lebanon’s flag symbolizes:",
@@ -27,8 +27,8 @@ window.TRIVIA_QUESTIONS = [
     },
     {
       text: "Hassan Kamel Al-Sabah (1905–1935) worked on early innovations in:",
-      choices: ["Nuclear reactors", "Solar energy and power electronics", "Laser optics", "Cryptography"],
-      correctIndex: 1
+      choices: ["Nuclear reactors", "Laser optics", "Cryptography", "Solar energy and power electronics"],
+      correctIndex: 3
     },
     {
       text: "Tony Fadell, of Lebanese descent, is best known for leading the creation of:",
@@ -47,8 +47,8 @@ window.TRIVIA_QUESTIONS = [
     },
     {
       text: "Lebanon’s highest peak is:",
-      choices: ["Mount Hermon (Jabal ash-Shaykh)", "Qurnat as Sawda’ (~3,088 m)", "Sannine (~2,628 m)", "Makmel Ridge (~2,500 m)"],
-      correctIndex: 1
+      choices: ["Jabal ash-Shaykh", "Sannine", "Qurnat as Sawda’", "Makmel Ridge"],
+      correctIndex: 2
     },
     {
       text: "Which university founded in 1866 has a long engineering legacy in Lebanon?",
@@ -57,8 +57,8 @@ window.TRIVIA_QUESTIONS = [
     },
     {
       text: "The Litani is Lebanon’s:",
-      choices: ["Largest lake", "Longest river", "Deepest cave", "Tallest dam"],
-      correctIndex: 1
+      choices: ["Largest lake", "Deepest cave", "Tallest dam", "Longest river"],
+      correctIndex: 3
     },
     {
       text: "Traditional Phoenician purple dye (Tyrian purple) came from:",
@@ -72,8 +72,8 @@ window.TRIVIA_QUESTIONS = [
     },
     {
       text: "Which Lebanese coastal city was a key Phoenician port and glass-making center?",
-      choices: ["Zahle", "Byblos (Jbeil)", "Baalbek", "Bcharre"],
-      correctIndex: 1
+      choices: ["Zahle", "Baalbek", "Byblos (Jbeil)", "Bcharre"],
+      correctIndex: 2
     },
     {
       text: "The modern project nicknamed the “Beirut River Solar Snake” is primarily:",
