@@ -58,7 +58,7 @@ window.TRIVIA_QUESTIONS = [
       correctIndex: 1
     },
     {
-      text: "Lebanese physicist Rammal Hassan Rammal, born in Deir Mimess in Southern Lebanon, gained international recognition for his pioneering work in which scientific field?",
+      text: "Lebanese physicist Rammal Hassan Rammal, born in Douier in Southern Lebanon, gained international recognition for his pioneering work in which scientific field?",
       choices: ["Quantum optics and photonics", "Solid-state physics and superconductivity", "Nuclear fusion energy and plasma confinement", "Space physics and cosmic radiation"],
       correctIndex: 1
     },
