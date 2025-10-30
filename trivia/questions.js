@@ -63,6 +63,11 @@ window.TRIVIA_QUESTIONS = [
       correctIndex: 1
     },
     {
+      text: "In the early 1960s, the Lebanese Rocket Society, led by Professor Manoug Manougian at Haigazian College, successfully launched the “Arz” (Cedar) series of rockets. What was the most significant technical achievement of the Arz-4 rocket?",
+      choices: ["It was Lebanon’s first liquid-fueled rocket.", "It carried Lebanon’s first biological experiment (a mouse) into sub-orbit.", "It reached an altitude of over 140 kilometers, entering the lower edge of space", "It was the first rocket guided by onboard electronics developed in Lebanon."],
+      correctIndex: 2
+    },
+    {
       text: "Lebanon’s highest peak is:",
       choices: ["Jabal ash-Shaykh", "Sannine", "Qurnat as Sawda’", "Makmel Ridge"],
       correctIndex: 2
@@ -86,11 +91,6 @@ window.TRIVIA_QUESTIONS = [
       text: "Remittances from the Lebanese diaspora account for approximately what share of GDP (pre-2020)?",
       choices: ["2–3%","10–15%",  "20–25%", "over 40%"],
       correctIndex: 2
-    },
-    {
-      text: "For ties, your event rules state the winner is the one with:",
-      choices: ["Fewest wrong answers", "Highest score then fastest time", "Earliest start", "Most skipped questions"],
-      correctIndex: 1
     }
   ];
   
