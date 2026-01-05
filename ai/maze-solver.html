@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Maze Solver | Think and Invent</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+</head>
+<body>
+<header>
+  <h1>Interactive Maze Solver</h1>
+  <nav>
+    <a href="../index.html">Home</a>
+    <a href="index.html">AI</a>
+    <a href="../projects.html">Projects</a>
+  </nav>
+</header>
+
+<main>
+  <section>
+    <p>
+      This demo visualizes classical AI search techniques by solving mazes using
+      depth-first and breadth-first search. The solver runs on a Python backend
+      and returns both the solution path and exploration statistics.
+    </p>
+
+    <label>Maze:</label>
+    <select id="mazeSelect">
+      <option value="maze1.txt">Maze 1</option>
+      <option value="maze2.txt">Maze 2</option>
+      <option value="maze3.txt">Maze 3</option>
+    </select>
+
+    <label>Algorithm:</label>
+    <select id="algoSelect">
+      <option value="stack">Depth-First Search</option>
+      <option value="queue">Breadth-First Search</option>
+    </select>
+
+    <button onclick="solveMaze()">Solve</button>
+
+    <div id="output"></div>
+  </section>
+</main>
+
+<footer>
+  <p>© 2025 Think and Invent</p>
+</footer>
+
+<script>
+const apiBase = "https://ai-backend-jd01.onrender.com";
+
+async function solveMaze() {
+  const maze = document.getElementById("mazeSelect").value;
+  const algorithm = document.getElementById("algoSelect").value;
+  const output = document.getElementById("output");
+
+  output.innerHTML = "<p>Solving...</p>";
+
+  const res = await fetch(`${apiBase}/solve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ maze, algorithm })
+  });
+
+  const data = await res.json();
+
+  output.innerHTML = `
+    <p><strong>Algorithm:</strong> ${algorithm}</p>
+    <p><strong>States explored:</strong> ${data.states_explored}</p>
+    <img src="${apiBase}${data.image}?t=${Date.now()}" style="max-width:100%;">
+  `;
+}
+</script>
+</body>
+</html>

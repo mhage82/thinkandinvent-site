@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tic Tac Toe AI | Think and Invent</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+</head>
+<body>
+<header>
+  <h1>Tic Tac Toe AI</h1>
+  <nav>
+    <a href="../index.html">Home</a>
+    <a href="index.html">AI</a>
+    <a href="../projects.html">Projects</a>
+  </nav>
+</header>
+
+<main>
+  <section>
+    <p>
+      This game demonstrates adversarial AI using the Minimax algorithm.
+      The AI evaluates future board states to select optimal moves.
+    </p>
+
+    <div id="ttt-board" class="ttt-grid"></div>
+    <p id="ttt-status"></p>
+    <button onclick="startGame()">Restart</button>
+  </section>
+</main>
+
+<footer>
+  <p>© 2025 Think and Invent</p>
+</footer>
+
+<script>
+const apiBase = "https://ai-backend-jd01.onrender.com";
+let board = [];
+
+async function startGame() {
+  const res = await fetch(`${apiBase}/ttt/start`);
+  const data = await res.json();
+  board = data.board;
+  render();
+}
+
+async function move(i, j) {
+  if (board[i][j]) return;
+
+  const res = await fetch(`${apiBase}/ttt/move`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ board, move: [i, j] })
+  });
+
+  const data = await res.json();
+  board = data.board;
+  document.getElementById("ttt-status").textContent =
+    data.winner ? `Winner: ${data.winner}` : "";
+  render();
+}
+
+function render() {
+  const grid = document.getElementById("ttt-board");
+  grid.innerHTML = "";
+  board.forEach((row, i) =>
+    row.forEach((cell, j) => {
+      const d = document.createElement("div");
+      d.textContent = cell || "";
+      d.onclick = () => move(i, j);
+      grid.appendChild(d);
+    })
+  );
+}
+
+window.onload = startGame;
+</script>
+</body>
+</html>
