@@ -84,37 +84,45 @@
 </footer>
 
 <script>
-const apiBase = "https://root-caries-api.onrender.com";
+const API_URL = "https://root-caries-api.onrender.com/predict";
 
-document.getElementById("predict-form").addEventListener("submit", async (e) => {
+const form = document.getElementById("predict-form");
+const resultDiv = document.getElementById("result");
+
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  // 🔹 Immediate feedback
+  resultDiv.innerHTML = "<p>⏳ Assessing risk… please wait.</p>";
+
   const payload = {
-    age: Number(document.getElementById("age").value),
-    is_female: Number(document.getElementById("is_female").value),
-    smoker: Number(document.getElementById("smoker").value),
-    missing_teeth: Number(document.getElementById("missing_teeth").value),
-    filled_teeth: Number(document.getElementById("filled_teeth").value),
-    income_poverty_ratio: Number(document.getElementById("income_ratio").value)
+    age: +document.getElementById("age").value,
+    is_female: 0,               // demo default
+    smoker: 0,                  // demo default
+    missing_teeth: +document.getElementById("missing").value,
+    filled_teeth: +document.getElementById("filled").value,
+    income_poverty_ratio: +document.getElementById("income").value
   };
 
-  const res = await fetch(`${apiBase}/predict`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
 
-  const data = await res.json();
+    const data = await response.json();
 
-  const riskPct = (data.probability * 100).toFixed(1);
-  const decision = data.above_threshold
-    ? "Elevated risk — screening recommended"
-    : "Lower risk — screening not indicated";
-
-  document.getElementById("result").innerHTML = `
-    <p><strong>Estimated Risk:</strong> ${riskPct}%</p>
-    <p><strong>Screening Decision:</strong> ${decision}</p>
-  `;
+    resultDiv.innerHTML = `
+      <p><strong>Risk Probability:</strong> ${(data.probability * 100).toFixed(1)}%</p>
+      <p><strong>Screening Recommendation:</strong>
+        ${data.above_threshold ? "⚠️ Elevated risk – screening recommended" : "✅ Low risk"}
+      </p>
+    `;
+  } catch (err) {
+    resultDiv.innerHTML =
+      "<p style='color:red;'>❌ Unable to reach the server. Please try again.</p>";
+  }
 });
 </script>
 
