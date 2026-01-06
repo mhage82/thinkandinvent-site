@@ -68,3 +68,25 @@ footer {
   pointer-events: none;
   background: #ddd;
 }
+
+.risk-bar {
+  position: relative;
+  height: 10px;
+  background: #eee;
+  border-radius: 5px;
+  margin: 1rem 0;
+}
+
+.risk-fill {
+  height: 100%;
+  background: #4a90e2;
+  border-radius: 5px;
+}
+
+.risk-threshold {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  background: red;
+}

@@ -71,15 +71,48 @@
       First request may take a few seconds while the server initializes.
     </p>
     
-    <div id="result" style="margin-top:1rem;"></div>
+    <section class="explanation">
+        <h3>What factors influence this estimate?</h3>
+        <ul>
+            <li><strong>Age:</strong> Risk increases gradually with age</li>
+            <li><strong>Smoking:</strong> Strongly associated with root caries risk</li>
+            <li><strong>Missing teeth:</strong> Indicator of long-term oral health history</li>
+            <li><strong>Filled teeth:</strong> Reflects past dental disease and treatment</li>
+            <li><strong>Income-to-poverty ratio:</strong> Proxy for access to preventive care</li>
+        </ul>
+    </section>
+    
+    <!-- <div id="result" style="margin-top:1rem;"></div> -->
+    <div id="result" class="result-box"></div>
+        <div id="risk-visual" style="display:none;">
+        <div class="risk-bar">
+            <div id="risk-fill" class="risk-fill"></div>
+            <div id="risk-threshold" class="risk-threshold"></div>
+        </div>
+    </div>
   </section>
 
-  <section>
-    <p style="font-size:0.9em;color:#666;">
-      Disclaimer: This tool is for educational demonstration only and is not a medical
-      diagnostic device or clinical decision system.
+    <section class="callout">
+    <h3>Why this is a screening tool</h3>
+    <p>
+        This model is designed for <strong>early risk screening</strong>, not diagnosis.
+        The screening threshold is intentionally set low to reduce the chance of missing
+        individuals who may be at elevated risk.
     </p>
-  </section>
+    <p>
+        As a result, some users may be flagged for screening even when the estimated
+        probability appears modest. This tradeoff prioritizes <strong>recall</strong>
+        over precision, which is appropriate for population-level health screening.
+    </p>
+    </section>
+
+    <section>
+        <p class="disclaimer">
+        This tool is for educational and screening demonstration purposes only.
+        It does not provide medical advice, diagnosis, or treatment recommendations.
+        Predictions are based on population-level patterns in NHANES data.
+        </p>
+    </section>
 </main>
 
 <footer>
@@ -114,11 +147,48 @@ document.getElementById("predict-form").addEventListener("submit", async (e) => 
     ? "Elevated risk — screening recommended"
     : "Lower risk — screening not indicated";
 
-  document.getElementById("result").innerHTML = `
-    <p><strong>Estimated Risk:</strong> ${riskPct}%</p>
-    <p><strong>Screening Decision:</strong> ${decision}</p>
-  `;
-});
+    document.getElementById("result").innerHTML = `
+    <h3>Screening Result</h3>
+
+    <p>
+        <strong>Estimated Risk:</strong>
+        ${(data.probability * 100).toFixed(1)}%
+    </p>
+
+    <p>
+        <strong>Screening Threshold:</strong>
+        ${(data.threshold * 100).toFixed(0)}%
+    </p>
+
+    <p class="${data.above_threshold ? "alert" : "ok"}">
+        ${
+        data.above_threshold
+            ? "Elevated risk — screening recommended"
+            : "Lower risk — routine monitoring suggested"
+        }
+    </p>
+
+    <details>
+        <summary>How should I interpret this?</summary>
+        <p>
+        This model is designed as a <strong>screening tool</strong>, not a diagnosis.
+        The threshold is intentionally set low to reduce missed high-risk cases.
+        This means some individuals flagged as “elevated risk” may not develop root caries,
+        but fewer high-risk cases are missed.
+        </p>
+    </details>
+    `;
+
+        const riskVisual = document.getElementById("risk-visual");
+        const riskFill = document.getElementById("risk-fill");
+        const riskThreshold = document.getElementById("risk-threshold");
+
+        if (riskVisual && riskFill && riskThreshold) {
+            riskVisual.style.display = "block";
+            riskFill.style.width = `${data.probability * 100}%`;
+            riskThreshold.style.left = `${data.threshold * 100}%`;
+        }
+    });
 </script>
 
 </body>
