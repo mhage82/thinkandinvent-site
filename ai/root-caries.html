@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../css/style.css"/>
 </head>
 <body>
+
 <header>
   <h1>Root Caries Risk Prediction</h1>
   <nav>
@@ -20,9 +21,9 @@
   <section>
     <h2>Overview</h2>
     <p>
-      This project applies machine learning to healthcare screening by predicting
-      the risk of root caries using publicly available CDC NHANES data.
-      The model is designed for interpretability and early risk stratification,
+      This project demonstrates an applied machine learning screening model that
+      estimates the risk of root caries using public CDC NHANES data.
+      The model is optimized for interpretability and early risk stratification,
       not diagnosis.
     </p>
   </section>
@@ -38,24 +39,42 @@
   </section>
 
   <section>
-    <h2>Interactive Demo</h2>
+    <h2>Interactive Risk Screening</h2>
     <p>Enter sample values to obtain a screening risk estimate.</p>
 
     <form id="predict-form">
-      <input type="number" placeholder="Age" id="age" required />
-      <input type="number" placeholder="Missing teeth" id="missing" required />
-      <input type="number" placeholder="Filled teeth" id="filled" required />
-      <input type="number" step="0.1" placeholder="Income-to-poverty ratio" id="income" required />
-      <button type="submit">Predict Risk</button>
+      <input type="number" id="age" placeholder="Age" required />
+
+      <label>
+        Sex:
+        <select id="is_female">
+          <option value="0">Male</option>
+          <option value="1">Female</option>
+        </select>
+      </label>
+
+      <label>
+        Smoker:
+        <select id="smoker">
+          <option value="0">No</option>
+          <option value="1">Yes</option>
+        </select>
+      </label>
+
+      <input type="number" id="missing_teeth" placeholder="Missing teeth" required />
+      <input type="number" id="filled_teeth" placeholder="Filled teeth" required />
+      <input type="number" step="0.1" id="income_ratio" placeholder="Income-to-poverty ratio" required />
+
+      <button type="submit">Assess Risk</button>
     </form>
 
-    <div id="result"></div>
+    <div id="result" style="margin-top:1rem;"></div>
   </section>
 
   <section>
     <p style="font-size:0.9em;color:#666;">
-      Disclaimer: This demo is for educational purposes only and is not a medical
-      diagnostic tool.
+      Disclaimer: This tool is for educational demonstration only and is not a medical
+      diagnostic device or clinical decision system.
     </p>
   </section>
 </main>
@@ -65,15 +84,18 @@
 </footer>
 
 <script>
-const apiBase = "https://ai-backend-jd01.onrender.com";
+const apiBase = "https://root-caries-api.onrender.com";
 
-document.getElementById("predict-form").onsubmit = async (e) => {
+document.getElementById("predict-form").addEventListener("submit", async (e) => {
   e.preventDefault();
+
   const payload = {
-    age: +age.value,
-    missing_teeth: +missing.value,
-    filled_teeth: +filled.value,
-    income_ratio: +income.value
+    age: Number(document.getElementById("age").value),
+    is_female: Number(document.getElementById("is_female").value),
+    smoker: Number(document.getElementById("smoker").value),
+    missing_teeth: Number(document.getElementById("missing_teeth").value),
+    filled_teeth: Number(document.getElementById("filled_teeth").value),
+    income_poverty_ratio: Number(document.getElementById("income_ratio").value)
   };
 
   const res = await fetch(`${apiBase}/predict`, {
@@ -83,9 +105,18 @@ document.getElementById("predict-form").onsubmit = async (e) => {
   });
 
   const data = await res.json();
-  document.getElementById("result").innerHTML =
-    `<p><strong>Risk:</strong> ${(data.probability * 100).toFixed(1)}%</p>`;
-};
+
+  const riskPct = (data.probability * 100).toFixed(1);
+  const decision = data.above_threshold
+    ? "Elevated risk — screening recommended"
+    : "Lower risk — screening not indicated";
+
+  document.getElementById("result").innerHTML = `
+    <p><strong>Estimated Risk:</strong> ${riskPct}%</p>
+    <p><strong>Screening Decision:</strong> ${decision}</p>
+  `;
+});
 </script>
+
 </body>
 </html>
