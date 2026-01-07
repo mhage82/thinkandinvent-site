@@ -5,7 +5,111 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Root Caries Risk Prediction | Think and Invent</title>
   <link rel="stylesheet" href="../css/style.css"/>
+
+  <style>
+    .screening-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .screening-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: #ffffff;
+      padding: 1.25rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    form input, form select {
+      width: 100%;
+      padding: 0.55rem;
+      margin-top: 0.3rem;
+      margin-bottom: 0.8rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    form button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    form button:hover {
+      background: #1d4ed8;
+    }
+
+    .result-box {
+      background: #f8fbff;
+      border-left: 5px solid #2563eb;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+
+    .alert { color: #b91c1c; font-weight: 600; }
+    .ok { color: #166534; font-weight: 600; }
+
+    .explanation {
+      background: #fafafa;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+
+    .callout {
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 1.5rem;
+      border-radius: 10px;
+      margin-top: 2rem;
+    }
+
+    .disclaimer {
+      font-size: 0.85rem;
+      color: #777;
+      margin-top: 1.5rem;
+      max-width: 800px;
+    }
+
+    .muted { color: #666; font-size: 0.85rem; }
+
+    .risk-bar {
+      position: relative;
+      height: 14px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 0.8rem;
+    }
+
+    .risk-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2563eb, #60a5fa);
+      width: 0%;
+      transition: width 0.6s ease;
+    }
+
+    .risk-threshold {
+      position: absolute;
+      top: -4px;
+      bottom: -4px;
+      width: 3px;
+      background: #dc2626;
+    }
+  </style>
 </head>
+
 <body>
 
 <header>
@@ -17,102 +121,112 @@
 </header>
 
 <main>
-  <section>
-    <h2>Overview</h2>
-    <p>
-      This project demonstrates an applied machine learning screening model that
-      estimates the risk of root caries using public CDC NHANES data.
-      The model is optimized for interpretability and early risk stratification,
-      not diagnosis.
-    </p>
-  </section>
 
-  <section>
-    <h2>Model Summary</h2>
-    <ul>
-      <li>Model: Logistic Regression</li>
-      <li>ROC-AUC: ~0.73</li>
-      <li>Screening Threshold: 0.10 (recall-focused)</li>
-      <li>Dataset: NHANES 2017–2020</li>
-    </ul>
-  </section>
+<section>
+  <h2>Overview</h2>
+  <p>
+    This project demonstrates an applied machine learning screening model that
+    estimates the risk of root caries using public CDC NHANES data.
+    The model is optimized for interpretability and early risk stratification,
+    not diagnosis.
+  </p>
+</section>
 
-  <section>
-    <h2>Interactive Risk Screening</h2>
-    <p>Enter sample values to obtain a screening risk estimate.</p>
+<section>
+  <h2>Model Summary</h2>
+  <ul>
+    <li>Model: Logistic Regression</li>
+    <li>ROC-AUC: ~0.73</li>
+    <li>Screening Threshold: 0.10 (recall-focused)</li>
+    <li>Dataset: NHANES 2017–2020</li>
+  </ul>
 
-    <form id="predict-form">
-      <input type="number" id="age" placeholder="Age" required />
+  <p style="font-size:0.9rem;color:#555;">
+    Built using CDC NHANES data and evaluated with standard screening metrics.
+  </p>
+</section>
 
-      <label>
-        Sex:
-        <select id="is_female">
-          <option value="0">Male</option>
-          <option value="1">Female</option>
-        </select>
-      </label>
+<section>
+  <h2>Interactive Risk Screening</h2>
+  <p>Enter sample values to obtain a screening risk estimate.</p>
 
-      <label>
-        Smoker:
-        <select id="smoker">
-          <option value="0">No</option>
-          <option value="1">Yes</option>
-        </select>
-      </label>
+  <div class="screening-grid">
 
-      <input type="number" id="missing_teeth" placeholder="Missing teeth" required />
-      <input type="number" id="filled_teeth" placeholder="Filled teeth" required />
-      <input type="number" step="0.1" id="income_ratio" placeholder="Income-to-poverty ratio" required />
+    <div class="card">
+      <form id="predict-form">
+        <input type="number" id="age" placeholder="Age" required />
 
-      <button type="submit">Assess Risk</button>
-    </form>
+        <label>Sex:
+          <select id="is_female">
+            <option value="0">Male</option>
+            <option value="1">Female</option>
+          </select>
+        </label>
 
-    <p style="font-size:0.85em;color:#777;">
-      First request may take a few seconds while the server initializes.
-    </p>
-    
-    <section class="explanation">
-        <h3>What factors influence this estimate?</h3>
-        <ul>
-            <li><strong>Age:</strong> Risk increases gradually with age</li>
-            <li><strong>Smoking:</strong> Strongly associated with root caries risk</li>
-            <li><strong>Missing teeth:</strong> Indicator of long-term oral health history</li>
-            <li><strong>Filled teeth:</strong> Reflects past dental disease and treatment</li>
-            <li><strong>Income-to-poverty ratio:</strong> Proxy for access to preventive care</li>
-        </ul>
-    </section>
-    
-    <!-- <div id="result" style="margin-top:1rem;"></div> -->
-    <div id="result" class="result-box"></div>
-        <div id="risk-visual" style="display:none;">
-        <div class="risk-bar">
-            <div id="risk-fill" class="risk-fill"></div>
-            <div id="risk-threshold" class="risk-threshold"></div>
-        </div>
+        <label>Smoker:
+          <select id="smoker">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+          </select>
+        </label>
+
+        <input type="number" id="missing_teeth" placeholder="Missing teeth" required />
+        <input type="number" id="filled_teeth" placeholder="Filled teeth" required />
+        <input type="number" step="0.1" id="income_ratio" placeholder="Income-to-poverty ratio" required />
+
+        <button type="submit">Assess Risk</button>
+      </form>
+
+      <p class="muted">
+        First request may take a few seconds while the server initializes.
+      </p>
     </div>
-  </section>
 
-    <section class="callout">
-    <h3>Why this is a screening tool</h3>
-    <p>
-        This model is designed for <strong>early risk screening</strong>, not diagnosis.
-        The screening threshold is intentionally set low to reduce the chance of missing
-        individuals who may be at elevated risk.
-    </p>
-    <p>
-        As a result, some users may be flagged for screening even when the estimated
-        probability appears modest. This tradeoff prioritizes <strong>recall</strong>
-        over precision, which is appropriate for population-level health screening.
-    </p>
-    </section>
+    <div class="explanation">
+      <h3>What factors influence this estimate?</h3>
+      <ul>
+        <li><strong>Age:</strong> Risk increases gradually with age</li>
+        <li><strong>Smoking:</strong> Strongly associated with root caries risk</li>
+        <li><strong>Missing teeth:</strong> Indicator of long-term oral health history</li>
+        <li><strong>Filled teeth:</strong> Reflects past dental disease and treatment</li>
+        <li><strong>Income-to-poverty ratio:</strong> Proxy for access to preventive care</li>
+      </ul>
+    </div>
 
-    <section>
-        <p class="disclaimer">
-        This tool is for educational and screening demonstration purposes only.
-        It does not provide medical advice, diagnosis, or treatment recommendations.
-        Predictions are based on population-level patterns in NHANES data.
-        </p>
-    </section>
+    <div id="result" class="result-box"></div>
+
+    <div id="risk-visual" style="display:none;">
+      <div class="risk-bar">
+        <div id="risk-fill" class="risk-fill"></div>
+        <div id="risk-threshold" class="risk-threshold"></div>
+      </div>
+      <p class="muted">Blue = estimated risk · Red marker = screening threshold</p>
+    </div>
+
+  </div>
+</section>
+
+<section class="callout">
+  <h3>Why this is a screening tool</h3>
+  <p>
+    This model is designed for <strong>early risk screening</strong>, not diagnosis.
+    The screening threshold is intentionally set low to reduce the chance of missing
+    individuals who may be at elevated risk.
+  </p>
+  <p>
+    This tradeoff prioritizes <strong>recall over precision</strong>, appropriate for
+    population-level health screening.
+  </p>
+</section>
+
+<section>
+  <p class="disclaimer">
+    This tool is for educational and screening demonstration purposes only.
+    It does not provide medical advice, diagnosis, or treatment recommendations.
+    Predictions are based on population-level patterns in NHANES data.
+  </p>
+</section>
+
 </main>
 
 <footer>
@@ -125,13 +239,16 @@ const apiBase = "https://root-caries-api.onrender.com";
 document.getElementById("predict-form").addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  document.getElementById("result").innerHTML =
+    "<p>Assessing risk… please wait.</p>";
+
   const payload = {
-    age: Number(document.getElementById("age").value),
-    is_female: Number(document.getElementById("is_female").value),
-    smoker: Number(document.getElementById("smoker").value),
-    missing_teeth: Number(document.getElementById("missing_teeth").value),
-    filled_teeth: Number(document.getElementById("filled_teeth").value),
-    income_poverty_ratio: Number(document.getElementById("income_ratio").value)
+    age: Number(age.value),
+    is_female: Number(is_female.value),
+    smoker: Number(smoker.value),
+    missing_teeth: Number(missing_teeth.value),
+    filled_teeth: Number(filled_teeth.value),
+    income_poverty_ratio: Number(income_ratio.value)
   };
 
   const res = await fetch(`${apiBase}/predict`, {
@@ -142,53 +259,29 @@ document.getElementById("predict-form").addEventListener("submit", async (e) => 
 
   const data = await res.json();
 
-  const riskPct = (data.probability * 100).toFixed(1);
-  const decision = data.above_threshold
-    ? "Elevated risk — screening recommended"
-    : "Lower risk — screening not indicated";
-
-    document.getElementById("result").innerHTML = `
-    <h3>Screening Result</h3>
-
-    <p>
-        <strong>Estimated Risk:</strong>
-        ${(data.probability * 100).toFixed(1)}%
-    </p>
-
-    <p>
-        <strong>Screening Threshold:</strong>
-        ${(data.threshold * 100).toFixed(0)}%
-    </p>
-
+  document.getElementById("result").innerHTML = `
+    <h3>📊 Screening Result</h3>
+    <p><strong>Estimated Risk:</strong> ${(data.probability * 100).toFixed(1)}%</p>
+    <p><strong>Screening Threshold:</strong> ${(data.threshold * 100).toFixed(0)}%</p>
     <p class="${data.above_threshold ? "alert" : "ok"}">
-        ${
-        data.above_threshold
-            ? "Elevated risk — screening recommended"
-            : "Lower risk — routine monitoring suggested"
-        }
+      ${data.above_threshold ? "Elevated risk — screening recommended" : "Lower risk — routine monitoring suggested"}
     </p>
-
     <details>
-        <summary>How should I interpret this?</summary>
-        <p>
-        This model is designed as a <strong>screening tool</strong>, not a diagnosis.
-        The threshold is intentionally set low to reduce missed high-risk cases.
-        This means some individuals flagged as “elevated risk” may not develop root caries,
-        but fewer high-risk cases are missed.
-        </p>
+      <summary>How should I interpret this?</summary>
+      <p>
+        This model is designed as a <strong>screening tool</strong>. The low threshold
+        reduces missed high-risk cases, even if some moderate-risk individuals are flagged.
+      </p>
     </details>
-    `;
+  `;
 
-        const riskVisual = document.getElementById("risk-visual");
-        const riskFill = document.getElementById("risk-fill");
-        const riskThreshold = document.getElementById("risk-threshold");
+  const riskVisual = document.getElementById("risk-visual");
+  riskVisual.style.display = "block";
+  document.getElementById("risk-fill").style.width = `${data.probability * 100}%`;
+  document.getElementById("risk-threshold").style.left = `${data.threshold * 100}%`;
 
-        if (riskVisual && riskFill && riskThreshold) {
-            riskVisual.style.display = "block";
-            riskFill.style.width = `${data.probability * 100}%`;
-            riskThreshold.style.left = `${data.threshold * 100}%`;
-        }
-    });
+  document.getElementById("result").scrollIntoView({ behavior: "smooth" });
+});
 </script>
 
 </body>
