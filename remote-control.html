@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Remote Control | Think and Invent</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            background: #111;
+            color: #eee;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            padding: 30px 15px;
+        }
+
+        .container {
+            width: min(100%, 1000px);
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        .panel {
+            background: #1d1d1d;
+            border: 1px solid #444;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        input {
+            flex: 1;
+            min-width: 250px;
+            padding: 10px 12px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: #111;
+            color: white;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: 1px solid #666;
+            border-radius: 6px;
+            background: #333;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #444;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 8px;
+        }
+
+        .status-good {
+            background: #143d20;
+            color: #8dff9f;
+        }
+
+        .status-bad {
+            background: #431919;
+            color: #ff9999;
+        }
+
+        .status-neutral {
+            background: #333;
+            color: #ccc;
+        }
+
+        #control-pad {
+            width: 100%;
+            height: 420px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border: 2px dashed #666;
+            border-radius: 10px;
+
+            background: #161616;
+
+            outline: none;
+            user-select: none;
+        }
+
+        #control-pad.active {
+            border-color: #8dff9f;
+        }
+
+        #control-message {
+            text-align: center;
+            color: #aaa;
+            line-height: 1.6;
+            padding: 20px;
+            pointer-events: none;
+        }
+
+        .small {
+            color: #aaa;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        #log {
+            height: 180px;
+            overflow-y: auto;
+            background: #090909;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Remote Control</h1>
+
+    <div class="panel">
+
+        <h2>Connection</h2>
+
+        <div class="row">
+            <input
+                id="password"
+                type="password"
+                placeholder="KVM password"
+                autocomplete="current-password"
+            >
+
+            <button id="connect-button">
+                Connect
+            </button>
+
+            <button
+                id="disconnect-button"
+                disabled
+            >
+                Disconnect
+            </button>
+        </div>
+
+        <div>
+            <span
+                id="backend-status"
+                class="status status-neutral"
+            >
+                Backend: unknown
+            </span>
+
+            <span
+                id="pi-status"
+                class="status status-neutral"
+            >
+                Pi: unknown
+            </span>
+
+            <span
+                id="socket-status"
+                class="status status-bad"
+            >
+                Control: disconnected
+            </span>
+        </div>
+
+        <p class="small">
+            The password is sent directly to the Render backend over HTTPS.
+            It is not stored in this page or committed to Git.
+        </p>
+
+    </div>
+
+
+    <div class="panel">
+
+        <h2>Remote Input</h2>
+
+        <div class="row">
+
+            <button
+                id="enable-control-button"
+                disabled
+            >
+                Enable Keyboard + Mouse
+            </button>
+
+            <button
+                id="release-button"
+                disabled
+            >
+                Release All Keys
+            </button>
+
+            <button
+                id="test-h-button"
+                disabled
+            >
+                Type H
+            </button>
+
+            <button
+                id="test-mouse-button"
+                disabled
+            >
+                Move Mouse Right
+            </button>
+
+        </div>
+
+        <div
+            id="control-pad"
+            tabindex="0"
+        >
+            <div id="control-message">
+                Connect first.<br>
+                Then click "Enable Keyboard + Mouse".
+            </div>
+        </div>
+
+        <p class="small">
+            While control is active, mouse movement, clicks, wheel events,
+            and keyboard events are sent to the Raspberry Pi.
+            Press Esc to release Pointer Lock.
+        </p>
+
+    </div>
+
+
+    <div class="panel">
+
+        <h2>Debug Log</h2>
+
+        <div id="log"></div>
+
+    </div>
+
+</div>
+
+
+<script>
+"use strict";
+
+
+/* ================================================================
+ * Configuration
+ * ================================================================ */
+
+const BACKEND_HTTP =
+    "https://ai-backend-jd01.onrender.com";
+
+const BACKEND_WS =
+    "wss://ai-backend-jd01.onrender.com";
+
+
+/* ================================================================
+ * Elements
+ * ================================================================ */
+
+const passwordInput =
+    document.getElementById(
+        "password"
+    );
+
+const connectButton =
+    document.getElementById(
+        "connect-button"
+    );
+
+const disconnectButton =
+    document.getElementById(
+        "disconnect-button"
+    );
+
+const backendStatus =
+    document.getElementById(
+        "backend-status"
+    );
+
+const piStatus =
+    document.getElementById(
+        "pi-status"
+    );
+
+const socketStatus =
+    document.getElementById(
+        "socket-status"
+    );
+
+const enableControlButton =
+    document.getElementById(
+        "enable-control-button"
+    );
+
+const releaseButton =
+    document.getElementById(
+        "release-button"
+    );
+
+const testHButton =
+    document.getElementById(
+        "test-h-button"
+    );
+
+const testMouseButton =
+    document.getElementById(
+        "test-mouse-button"
+    );
+
+const controlPad =
+    document.getElementById(
+        "control-pad"
+    );
+
+const controlMessage =
+    document.getElementById(
+        "control-message"
+    );
+
+const logElement =
+    document.getElementById(
+        "log"
+    );
+
+
+/* ================================================================
+ * State
+ * ================================================================ */
+
+let socket = null;
+
+const pressedKeys =
+    new Set();
+
+
+/* ================================================================
+ * Logging
+ * ================================================================ */
+
+function log(message)
+{
+    const timestamp =
+        new Date().toLocaleTimeString();
+
+    logElement.textContent +=
+        `[${timestamp}] ${message}\n`;
+
+    logElement.scrollTop =
+        logElement.scrollHeight;
+}
+
+
+/* ================================================================
+ * Status helpers
+ * ================================================================ */
+
+function setStatus(
+    element,
+    text,
+    state
+)
+{
+    element.textContent =
+        text;
+
+    element.classList.remove(
+        "status-good",
+        "status-bad",
+        "status-neutral"
+    );
+
+    if (state === "good")
+    {
+        element.classList.add(
+            "status-good"
+        );
+    }
+    else if (state === "bad")
+    {
+        element.classList.add(
+            "status-bad"
+        );
+    }
+    else
+    {
+        element.classList.add(
+            "status-neutral"
+        );
+    }
+}
+
+
+function socketConnected()
+{
+    return (
+        socket !== null &&
+        socket.readyState === WebSocket.OPEN
+    );
+}
+
+
+/* ================================================================
+ * Backend status
+ * ================================================================ */
+
+async function checkBackendStatus()
+{
+    try
+    {
+        const response =
+            await fetch(
+                `${BACKEND_HTTP}/kvm/status`
+            );
+
+        if (!response.ok)
+        {
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+        }
+
+        const data =
+            await response.json();
+
+        setStatus(
+            backendStatus,
+            "Backend: online",
+            "good"
+        );
+
+        if (data.pi_connected)
+        {
+            setStatus(
+                piStatus,
+                "Pi: connected",
+                "good"
+            );
+        }
+        else
+        {
+            setStatus(
+                piStatus,
+                "Pi: disconnected",
+                "bad"
+            );
+        }
+    }
+    catch (error)
+    {
+        setStatus(
+            backendStatus,
+            "Backend: offline",
+            "bad"
+        );
+
+        setStatus(
+            piStatus,
+            "Pi: unknown",
+            "neutral"
+        );
+
+        log(
+            `Status error: ${error}`
+        );
+    }
+}
+
+
+/* ================================================================
+ * Authentication
+ * ================================================================ */
+
+async function requestTicket(
+    password
+)
+{
+    const response =
+        await fetch(
+            `${BACKEND_HTTP}/kvm/login`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    password: password
+                })
+            }
+        );
+
+    const data =
+        await response.json();
+
+    if (!response.ok)
+    {
+        throw new Error(
+            data.error ||
+            `Login failed: HTTP ${response.status}`
+        );
+    }
+
+    if (!data.ticket)
+    {
+        throw new Error(
+            "Backend did not return a WebSocket ticket"
+        );
+    }
+
+    return data;
+}
+
+
+/* ================================================================
+ * WebSocket
+ * ================================================================ */
+
+async function connect()
+{
+    if (socketConnected())
+    {
+        return;
+    }
+
+    const password =
+        passwordInput.value;
+
+    if (!password)
+    {
+        alert(
+            "Enter the KVM password first."
+        );
+
+        return;
+    }
+
+    connectButton.disabled =
+        true;
+
+    log(
+        "Requesting authentication ticket..."
+    );
+
+    try
+    {
+        const login =
+            await requestTicket(
+                password
+            );
+
+        /*
+         * Password no longer needs to remain in the DOM.
+         */
+        passwordInput.value =
+            "";
+
+        if (!login.pi_connected)
+        {
+            log(
+                "Warning: Pi is currently offline."
+            );
+        }
+
+        const websocketUrl =
+            `${BACKEND_WS}` +
+            `/ws/kvm/client` +
+            `?ticket=${encodeURIComponent(login.ticket)}`;
+
+        log(
+            "Opening authenticated WebSocket..."
+        );
+
+        socket =
+            new WebSocket(
+                websocketUrl
+            );
+
+        socket.addEventListener(
+            "open",
+            () =>
+            {
+                log(
+                    "Control WebSocket connected."
+                );
+
+                setStatus(
+                    socketStatus,
+                    "Control: connected",
+                    "good"
+                );
+
+                disconnectButton.disabled =
+                    false;
+
+                enableControlButton.disabled =
+                    false;
+
+                releaseButton.disabled =
+                    false;
+
+                testHButton.disabled =
+                    false;
+
+                testMouseButton.disabled =
+                    false;
+
+                sendMessage({
+                    type: "release_all"
+                });
+
+                checkBackendStatus();
+            }
+        );
+
+
+        socket.addEventListener(
+            "message",
+            event =>
+            {
+                try
+                {
+                    const message =
+                        JSON.parse(
+                            event.data
+                        );
+
+                    if (
+                        message.ok === false
+                    )
+                    {
+                        log(
+                            `Server error: ${message.error}`
+                        );
+                    }
+                }
+                catch
+                {
+                    log(
+                        `Server: ${event.data}`
+                    );
+                }
+            }
+        );
+
+
+        socket.addEventListener(
+            "close",
+            event =>
+            {
+                log(
+                    `WebSocket closed. ` +
+                    `Code=${event.code}`
+                );
+
+                handleDisconnected();
+            }
+        );
+
+
+        socket.addEventListener(
+            "error",
+            () =>
+            {
+                log(
+                    "WebSocket error."
+                );
+            }
+        );
+    }
+    catch (error)
+    {
+        log(
+            `Connection failed: ${error.message}`
+        );
+
+        alert(
+            error.message
+        );
+
+        connectButton.disabled =
+            false;
+    }
+}
+
+
+function handleDisconnected()
+{
+    socket = null;
+
+    pressedKeys.clear();
+
+    setStatus(
+        socketStatus,
+        "Control: disconnected",
+        "bad"
+    );
+
+    controlPad.classList.remove(
+        "active"
+    );
+
+    controlMessage.innerHTML =
+        "Connect first.<br>" +
+        "Then click \"Enable Keyboard + Mouse\".";
+
+    connectButton.disabled =
+        false;
+
+    disconnectButton.disabled =
+        true;
+
+    enableControlButton.disabled =
+        true;
+
+    releaseButton.disabled =
+        true;
+
+    testHButton.disabled =
+        true;
+
+    testMouseButton.disabled =
+        true;
+}
+
+
+function disconnect()
+{
+    releaseAll();
+
+    if (socket)
+    {
+        socket.close();
+    }
+}
+
+
+function sendMessage(
+    message
+)
+{
+    if (!socketConnected())
+    {
+        return false;
+    }
+
+    socket.send(
+        JSON.stringify(
+            message
+        )
+    );
+
+    return true;
+}
+
+
+/* ================================================================
+ * Keyboard
+ * ================================================================ */
+
+function browserKeyToRemoteKey(
+    key
+)
+{
+    switch (key)
+    {
+        case "Control":
+            return "ctrl";
+
+        case "Shift":
+            return "shift";
+
+        case "Alt":
+            return "alt";
+
+        case "Meta":
+            return "win";
+
+        case " ":
+            return "space";
+
+        default:
+            return key;
+    }
+}
+
+
+function controlActive()
+{
+    return (
+        document.pointerLockElement ===
+        controlPad
+    );
+}
+
+
+function handleKeyDown(
+    event
+)
+{
+    if (!controlActive())
+    {
+        return;
+    }
+
+    /*
+     * Keep Escape available to leave Pointer Lock.
+     */
+    if (event.key === "Escape")
+    {
+        return;
+    }
+
+    event.preventDefault();
+
+    const key =
+        browserKeyToRemoteKey(
+            event.key
+        );
+
+    /*
+     * Browser auto-repeat should not repeatedly
+     * generate HID key-down state.
+     */
+    if (pressedKeys.has(key))
+    {
+        return;
+    }
+
+    pressedKeys.add(
+        key
+    );
+
+    sendMessage({
+        type: "key_down",
+        key: key
+    });
+}
+
+
+function handleKeyUp(
+    event
+)
+{
+    if (!controlActive())
+    {
+        return;
+    }
+
+    if (event.key === "Escape")
+    {
+        return;
+    }
+
+    event.preventDefault();
+
+    const key =
+        browserKeyToRemoteKey(
+            event.key
+        );
+
+    pressedKeys.delete(
+        key
+    );
+
+    sendMessage({
+        type: "key_up",
+        key: key
+    });
+}
+
+
+/* ================================================================
+ * Mouse
+ * ================================================================ */
+
+function browserMouseButton(
+    button
+)
+{
+    switch (button)
+    {
+        case 0:
+            return "left";
+
+        case 1:
+            return "middle";
+
+        case 2:
+            return "right";
+
+        default:
+            return null;
+    }
+}
+
+
+function handleMouseMove(
+    event
+)
+{
+    if (!controlActive())
+    {
+        return;
+    }
+
+    const dx =
+        Math.round(
+            event.movementX
+        );
+
+    const dy =
+        Math.round(
+            event.movementY
+        );
+
+    if (
+        dx === 0 &&
+        dy === 0
+    )
+    {
+        return;
+    }
+
+    sendMessage({
+        type: "mouse_move",
+        dx: dx,
+        dy: dy
+    });
+}
+
+
+function handleMouseDown(
+    event
+)
+{
+    if (!controlActive())
+    {
+        return;
+    }
+
+    event.preventDefault();
+
+    const button =
+        browserMouseButton(
+            event.button
+        );
+
+    if (button === null)
+    {
+        return;
+    }
+
+    sendMessage({
+        type: "mouse_down",
+        button: button
+    });
+}
+
+
+function handleMouseUp(
+    event
+)
+{
+    if (!controlActive())
+    {
+        return;
+    }
+
+    event.preventDefault();
+
+    const button =
+        browserMouseButton(
+            event.button
+        );
+
+    if (button === null)
+    {
+        return;
+    }
+
+    sendMessage({
+        type: "mouse_up",
+        button: button
+    });
+}
+
+
+function handleWheel(
+    event
+)
+{
+    if (!controlActive())
+    {
+        return;
+    }
+
+    event.preventDefault();
+
+    let amount = 0;
+
+    if (event.deltaY < 0)
+    {
+        amount = 1;
+    }
+    else if (event.deltaY > 0)
+    {
+        amount = -1;
+    }
+
+    if (amount !== 0)
+    {
+        sendMessage({
+            type: "mouse_scroll",
+            amount: amount
+        });
+    }
+}
+
+
+/* ================================================================
+ * HID safety
+ * ================================================================ */
+
+function releaseAll()
+{
+    pressedKeys.clear();
+
+    sendMessage({
+        type: "release_all"
+    });
+}
+
+
+/* ================================================================
+ * Pointer Lock
+ * ================================================================ */
+
+async function enableControl()
+{
+    if (!socketConnected())
+    {
+        alert(
+            "Connect to the KVM backend first."
+        );
+
+        return;
+    }
+
+    controlPad.focus();
+
+    try
+    {
+        await controlPad.requestPointerLock();
+    }
+    catch (error)
+    {
+        log(
+            `Pointer Lock failed: ${error}`
+        );
+    }
+}
+
+
+function handlePointerLockChange()
+{
+    if (controlActive())
+    {
+        controlPad.classList.add(
+            "active"
+        );
+
+        controlMessage.innerHTML =
+            "REMOTE CONTROL ACTIVE<br>" +
+            "Press Esc to release the mouse.";
+
+        controlPad.focus();
+
+        log(
+            "Keyboard/mouse control enabled."
+        );
+    }
+    else
+    {
+        controlPad.classList.remove(
+            "active"
+        );
+
+        controlMessage.innerHTML =
+            "Control released.<br>" +
+            "Click Enable Keyboard + Mouse to resume.";
+
+        releaseAll();
+
+        log(
+            "Keyboard/mouse control released."
+        );
+    }
+}
+
+
+/* ================================================================
+ * Test controls
+ * ================================================================ */
+
+function testH()
+{
+    if (!socketConnected())
+    {
+        return;
+    }
+
+    sendMessage({
+        type: "key_down",
+        key: "h"
+    });
+
+    setTimeout(
+        () =>
+        {
+            sendMessage({
+                type: "key_up",
+                key: "h"
+            });
+        },
+        75
+    );
+}
+
+
+function testMouse()
+{
+    if (!socketConnected())
+    {
+        return;
+    }
+
+    sendMessage({
+        type: "mouse_move",
+        dx: 100,
+        dy: 0
+    });
+}
+
+
+/* ================================================================
+ * Event listeners
+ * ================================================================ */
+
+connectButton.addEventListener(
+    "click",
+    connect
+);
+
+disconnectButton.addEventListener(
+    "click",
+    disconnect
+);
+
+enableControlButton.addEventListener(
+    "click",
+    enableControl
+);
+
+releaseButton.addEventListener(
+    "click",
+    releaseAll
+);
+
+testHButton.addEventListener(
+    "click",
+    testH
+);
+
+testMouseButton.addEventListener(
+    "click",
+    testMouse
+);
+
+passwordInput.addEventListener(
+    "keydown",
+    event =>
+    {
+        if (event.key === "Enter")
+        {
+            connect();
+        }
+    }
+);
+
+document.addEventListener(
+    "pointerlockchange",
+    handlePointerLockChange
+);
+
+document.addEventListener(
+    "keydown",
+    handleKeyDown,
+    true
+);
+
+document.addEventListener(
+    "keyup",
+    handleKeyUp,
+    true
+);
+
+document.addEventListener(
+    "mousemove",
+    handleMouseMove,
+    true
+);
+
+document.addEventListener(
+    "mousedown",
+    handleMouseDown,
+    true
+);
+
+document.addEventListener(
+    "mouseup",
+    handleMouseUp,
+    true
+);
+
+document.addEventListener(
+    "wheel",
+    handleWheel,
+    {
+        passive: false,
+        capture: true
+    }
+);
+
+document.addEventListener(
+    "contextmenu",
+    event =>
+    {
+        if (controlActive())
+        {
+            event.preventDefault();
+        }
+    }
+);
+
+window.addEventListener(
+    "blur",
+    releaseAll
+);
+
+window.addEventListener(
+    "beforeunload",
+    releaseAll
+);
+
+
+/* ================================================================
+ * Initial state
+ * ================================================================ */
+
+checkBackendStatus();
+
+setInterval(
+    checkBackendStatus,
+    10000
+);
+
+</script>
+
+</body>
+</html>
