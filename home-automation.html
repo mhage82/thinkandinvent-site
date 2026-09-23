@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Branch-Duct Zoning</title>
+<meta name="description" content="Room-by-room climate control for existing forced-air homes, using modulating dampers at the basement branch ducts.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --ground:#F3F5F6; --paper:#FFFFFF; --ink:#16202A; --muted:#55616D; --rule:#D3DAE0; --soft:#E8EDF0;
+  --accent:#0E6B77; --accent-soft:#DCEEF0; --warm:#B0501B; --warm-soft:#F6E4D9;
+  --display:"Archivo","Arial Narrow",Arial,sans-serif;
+  --body:"Source Sans 3","Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#0F151A; --paper:#151D24; --ink:#E2E8EC; --muted:#98A5B1; --rule:#2B3743; --soft:#1C2630;
+    --accent:#58B7C3; --accent-soft:#16333A; --warm:#E3905D; --warm-soft:#3A2519;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0F151A; --paper:#151D24; --ink:#E2E8EC; --muted:#98A5B1; --rule:#2B3743; --soft:#1C2630;
+  --accent:#58B7C3; --accent-soft:#16333A; --warm:#E3905D; --warm-soft:#3A2519;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.65;padding-inline:20px;padding-block:0 72px}
+a{color:var(--accent);text-underline-offset:2px}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.page{max-width:880px;margin:0 auto}
+header.hero{padding-block:56px 32px;border-bottom:1px solid var(--rule)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--display);font-stretch:78%;font-weight:800;font-size:clamp(2.4rem,6vw,3.8rem);line-height:1;margin:.3em 0 .35em;letter-spacing:-.01em;text-wrap:balance}
+.lede{font-size:1.2rem;color:var(--ink);max-width:62ch;margin:0 0 1em}
+.status{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;color:var(--muted);border:1px solid var(--rule);background:var(--paper);border-radius:20px;padding:4px 12px}
+.status::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--warm)}
+nav.toc{margin-top:22px;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14.5px}
+nav.toc a{color:var(--muted);text-decoration:none}
+nav.toc a:hover{color:var(--accent)}
+section{padding-block:40px 8px;border-bottom:1px solid var(--rule)}
+section:last-of-type{border-bottom:0}
+h2{font-family:var(--display);font-stretch:82%;font-weight:750;font-size:1.9rem;line-height:1.1;margin:0 0 .6em;text-wrap:balance}
+h3{font-family:var(--display);font-stretch:88%;font-weight:700;font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{max-width:68ch}
+p{margin:0 0 1em}
+ul,ol{padding-left:1.25em;margin:0 0 1.1em}
+li{margin-bottom:.4em}
+strong{font-weight:700}
+.callout{border-left:3px solid var(--warm);background:var(--warm-soft);padding:14px 18px;border-radius:0 4px 4px 0;margin:16px 0 22px;max-width:72ch}
+.callout p:last-child{margin:0}
+figure{margin:20px 0 28px}
+.diagram{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:18px;overflow-x:auto}
+.diagram pre.mermaid{margin:0;font-family:var(--mono);font-size:12px;color:var(--muted);white-space:pre;text-align:center}
+.diagram pre.mermaid svg{max-width:100%;height:auto}
+figcaption{font-size:14px;color:var(--muted);margin-top:8px;max-width:70ch}
+.tbl{overflow-x:auto;margin:14px 0 24px;border:1px solid var(--rule);border-radius:6px;background:var(--paper)}
+table{border-collapse:collapse;width:100%;font-size:15px;line-height:1.45}
+th,td{text-align:left;vertical-align:top;padding:10px 14px;border-bottom:1px solid var(--rule)}
+tr:last-child td{border-bottom:0}
+thead th{background:var(--soft);font-family:var(--display);font-stretch:90%;font-weight:700;font-size:14px;white-space:nowrap}
+td:first-child{font-weight:600}
+table.compare{min-width:720px}
+table.compare th:last-child,table.compare td:last-child{background:var(--accent-soft)}
+.yes{color:var(--accent);font-weight:700}
+.no{color:var(--muted)}
+.principles{counter-reset:p;list-style:none;padding:0;display:grid;gap:12px}
+.principles li{counter-increment:p;display:grid;grid-template-columns:36px 1fr;gap:4px;max-width:none}
+.principles li::before{content:counter(p);font-family:var(--display);font-weight:800;font-size:1.4rem;line-height:1.2;color:var(--accent)}
+footer{padding-top:28px;font-size:14px;color:var(--muted)}
+footer p{max-width:72ch}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="hero">
+  <div class="eyebrow">Project · Home automation · HVAC</div>
+  <h1>Smart Branch-Duct Zoning</h1>
+  <p class="lede">Room-by-room heating and cooling for an existing forced-air home, without replacing the furnace, the air conditioner, the thermostat, or the ductwork.</p>
+  <span class="status">Concept and prototype design</span>
+  <nav class="toc" aria-label="On this page">
+    <a href="#how-it-works">How it works</a>
+    <a href="#hard-part">The hard part</a>
+    <a href="#control">Control strategy</a>
+    <a href="#setup">Setup</a>
+    <a href="#fail-safe">Fail-safe</a>
+    <a href="#compare">Comparison</a>
+    <a href="#prototype">Prototype plan</a>
+  </nav>
+</header>
+
+<section id="intro">
+<p>Most homes with central air have one thermostat in one room. Upstairs bedrooms run hot in summer, basements run cold in winter, and the home office is never right.</p>
+<p>This project adds a temperature sensor to each room and a motorized, modulating damper to each branch duct where it leaves the main supply trunk in the basement. A controller then shifts air toward the rooms that need it, while watching duct pressure and air temperatures so the furnace and AC are never pushed outside safe limits.</p>
+</section>
+
+<section id="how-it-works">
+<h2>How it works</h2>
+<figure>
+<div class="diagram">
+<pre class="mermaid">
+flowchart TB
+    subgraph LIVING["Living space"]
+        RS1["Room sensor<br/>temperature + humidity"]
+        RS2["Room sensor"]
+        RS3["Room sensor<br/>one per room"]
+        TSTAT["Existing thermostat<br/>any 24 V brand"]
+        APP["Phone app / web UI<br/>Home Assistant / Matter"]
+    end
+
+    subgraph BASEMENT["Basement"]
+        CTRL["Zone controller<br/>control loop + safety limits<br/>runs locally"]
+        FURN["Furnace / air handler<br/>+ AC or heat pump"]
+        DP["Supply plenum<br/>static pressure sensor"]
+        TS["Supply + return<br/>air temperature probes"]
+        D1["Branch damper 1"]
+        D2["Branch damper 2"]
+        D3["Branch damper N"]
+    end
+
+    RS1 -.->|Thread / Zigbee| CTRL
+    RS2 -.->|Thread / Zigbee| CTRL
+    RS3 -.->|Thread / Zigbee| CTRL
+    APP <-.->|home Wi-Fi| CTRL
+    TSTAT -->|heat / cool calls| CTRL
+    CTRL -->|pass-through or staged calls| FURN
+    DP --> CTRL
+    TS --> CTRL
+    CTRL ==>|"wired bus, power + data"| D1
+    CTRL ==>|"wired bus, power + data"| D2
+    CTRL ==>|"wired bus, power + data"| D3
+</pre>
+</div>
+<figcaption>Wireless only where wires are hard (the rooms). Everything in the basement is wired, and home Wi-Fi is used only for the app.</figcaption>
+</figure>
+
+<div class="tbl"><table>
+<thead><tr><th>Component</th><th>Where</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td>Room sensors</td><td>Each room</td><td>Battery-powered temperature and humidity sensors on a low-power mesh (Thread or Zigbee), lasting years on AA cells</td></tr>
+<tr><td>Zone controller</td><td>Basement, near the furnace</td><td>Sits between the existing thermostat and the equipment. Runs all control and safety logic locally, with no internet required</td></tr>
+<tr><td>Branch dampers</td><td>Each branch take-off</td><td>Round modulating dampers with position feedback, wired to the controller for power and data</td></tr>
+<tr><td>Static pressure sensor</td><td>Supply plenum</td><td>Measures how hard the blower is pushing: the key safety signal when dampers close</td></tr>
+<tr><td>Air temperature probes</td><td>Supply and return ducts</td><td>Detect furnace overheating and AC coil-freeze risk</td></tr>
+<tr><td>App</td><td>Phone or browser</td><td>Setpoints per room, schedules, diagnostics. Integrates with Home Assistant and Matter</td></tr>
+</tbody></table></div>
+
+<h3>Why the dampers are in the basement</h3>
+<p>Smart vents replace the register in every room: visible, battery-powered, and placed at the very end of the duct where they have the least control. In many older homes, each room is fed by its own round duct leaving a basement trunk. Putting the damper right at that take-off means:</p>
+<ul>
+<li><strong>Nothing changes in the living space.</strong> The original registers stay.</li>
+<li><strong>Dampers can be wired,</strong> so there are no batteries inside ducts.</li>
+<li><strong>Fail-safe behavior is predictable.</strong> Every damper can be commanded open instantly, which newer A2L-refrigerant equipment requires on a detected leak.</li>
+</ul>
+</section>
+
+<section id="hard-part">
+<h2>The hard part: air has to go somewhere</h2>
+<p>A furnace or air conditioner is designed to move a fixed amount of air through the whole duct system. Close too many dampers and:</p>
+<ul>
+<li><strong>duct pressure rises:</strong> the blower works harder, gets louder, and ducts leak more;</li>
+<li><strong>airflow across the equipment drops:</strong> a furnace can overheat and trip its high-limit switch, and an AC coil can freeze.</li>
+</ul>
+<div class="callout"><p>Lab research by Lawrence Berkeley National Laboratory found that simply closing registers raised duct pressure and leakage, and in simulation actually <em>increased</em> energy use. That is why this system <strong>redistributes</strong> air rather than shutting rooms off, and why every damper decision passes through a safety layer first.</p></div>
+
+<figure>
+<div class="diagram">
+<pre class="mermaid">
+flowchart TD
+    A["Room sensors report temperatures"] --> B["Room demand<br/>how far each room is from its setpoint"]
+    B --> C["Airflow allocator<br/>chooses a damper position for every branch"]
+    C --> D{"Safety layer<br/>within limits?"}
+    D -->|Yes| E["Move dampers<br/>slowly, one at a time"]
+    D -->|No| F["Open dampers until<br/>pressure and temperatures recover"]
+    F --> E
+    E --> G["Measure plenum pressure<br/>supply and return temperatures"]
+    G --> D
+    E --> A
+</pre>
+</div>
+<figcaption>Every proposed damper move is checked against measured pressure and temperatures before and after it happens.</figcaption>
+</figure>
+
+<h3>Safety limits the controller always enforces</h3>
+<div class="tbl"><table>
+<thead><tr><th>Limit</th><th>Signal</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>Duct static pressure</td><td>Supply-plenum pressure vs. the learned "all-open" baseline</td><td>Open dampers until pressure returns to the safe band</td></tr>
+<tr><td>Minimum airflow</td><td>Total open damper area (learned per branch)</td><td>Never let total open area fall below the equipment's minimum</td></tr>
+<tr><td>Furnace overheating</td><td>Supply minus return temperature rise</td><td>Open dampers as rise approaches the furnace nameplate limit</td></tr>
+<tr><td>AC coil freeze</td><td>Supply air temperature trend</td><td>Open dampers before the coil gets near freezing</td></tr>
+<tr><td>Refrigerant leak (A2L)</td><td>Signal from the HVAC equipment</td><td>Open every damper and run the fan immediately</td></tr>
+<tr><td>Second stage</td><td>Heat or cool stage 2 call</td><td>Allow only when enough of the duct system is open</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="control">
+<h2>Control strategy</h2>
+<p>Rather than giving each room its own on/off thermostat, the controller treats the house as one system, in four layers:</p>
+<ol>
+<li><strong>Hard safety limits:</strong> pressure, temperature rise, supply-air low limit, refrigerant leak.</li>
+<li><strong>Airflow allocator:</strong> every few minutes, choose damper positions that best meet room demands while staying inside those limits.</li>
+<li><strong>Room demand:</strong> simple per-room models of how fast each room warms or cools.</li>
+<li><strong>Damper position:</strong> each damper's learned curve converts "this much air" into "this blade angle."</li>
+</ol>
+
+<div class="tbl"><table>
+<thead><tr><th>Approach</th><th>Used here?</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Open / closed dampers</td><td class="no">No</td><td>Causes pressure spikes; needs a bypass duct</td></tr>
+<tr><td>Proportional (modulating) dampers</td><td class="yes">Yes</td><td>Redistributes air smoothly</td></tr>
+<tr><td>Minimum-open position</td><td class="yes">Yes</td><td>Cheap insurance for airflow</td></tr>
+<tr><td>Static-pressure feedback</td><td class="yes">Yes</td><td>The core protection layer</td></tr>
+<tr><td>Learned airflow per branch</td><td class="yes">Yes</td><td>Makes room-level allocation possible</td></tr>
+<tr><td>Per-room PID alone</td><td class="no">No</td><td>Rooms fight each other through shared duct pressure</td></tr>
+<tr><td>Model-predictive control</td><td class="no">Later</td><td>Pre-heating and pre-cooling using weather and solar gain</td></tr>
+</tbody></table></div>
+
+<h3>Where machine learning helps, and where it doesn't</h3>
+<ul>
+<li><strong>Useful:</strong> fitting each damper's airflow curve and each room's thermal response from normal operation; spotting abnormal HVAC behavior such as a clogging filter, failing blower, or leaking duct.</li>
+<li><strong>Not needed:</strong> the safety logic and the energy objective are known and explicit. A learned model estimates parameters; it never overrides a safety limit.</li>
+</ul>
+</section>
+
+<section id="setup">
+<h2>Setup: the system learns the house</h2>
+<p>The biggest barrier to zoning an existing home is the manual design and balancing work. The goal is for the system to commission itself.</p>
+<figure>
+<div class="diagram">
+<pre class="mermaid">
+sequenceDiagram
+    participant I as Installer (app)
+    participant C as Controller
+    participant D as Dampers
+    participant F as Blower
+    participant R as Room sensors
+
+    I->>C: Register each damper (duct size, location)
+    C->>F: Run fan only
+    C->>D: Open all dampers
+    C->>C: Record baseline plenum pressure
+    loop For each damper
+        C->>D: Close this damper
+        R-->>C: Room temperatures respond
+        C->>C: Link damper to the room(s) that react
+        C->>D: Step damper through positions
+        C->>C: Fit damper airflow curve from pressure change
+        C->>D: Reopen damper
+    end
+    C->>F: Run one heating and one cooling cycle
+    C->>C: Confirm pressure and temperature limits
+    C-->>I: Report room map and safe operating range
+</pre>
+</div>
+<figcaption>This also handles the messy cases automatically: one branch feeding two rooms, or one room with two branches.</figcaption>
+</figure>
+</section>
+
+<section id="fail-safe">
+<h2>Fail-safe behavior</h2>
+<p>Every failure ends in the same place: <strong>all dampers open, and the original thermostat back in control.</strong> The house then behaves exactly as it did before the system was installed.</p>
+<figure>
+<div class="diagram">
+<pre class="mermaid">
+stateDiagram-v2
+    [*] --> Normal
+    Normal --> Protecting: pressure or temperature limit reached
+    Protecting --> Normal: back inside limits
+    Normal --> RoomFallback: room sensor silent
+    RoomFallback --> Normal: sensor reports again
+    Normal --> AllOpen: controller fault or bus lost
+    Normal --> AllOpen: refrigerant leak signal
+    Normal --> AllOpen: bypass switch turned on
+    Protecting --> AllOpen: limit not recovering
+    AllOpen --> Normal: fault cleared and self-test passed
+
+    state RoomFallback {
+        [*] --> BranchOpen
+        BranchOpen: damper for that room opens
+    }
+    state AllOpen {
+        [*] --> PassThrough
+        PassThrough: every damper open, thermostat drives the equipment directly
+    }
+</pre>
+</div>
+</figure>
+<ul>
+<li><strong>Dampers</strong> open on their own if they hear nothing from the controller for about a minute.</li>
+<li><strong>The controller's</strong> relays fail back to direct thermostat pass-through if it loses power.</li>
+<li><strong>A physical bypass switch</strong> disables zoning instantly for a homeowner or HVAC technician.</li>
+<li><strong>Each damper</strong> has a manual lever.</li>
+<li><strong>Internet loss</strong> changes nothing except remote access.</li>
+</ul>
+</section>
+
+<section id="compare">
+<h2>How this compares</h2>
+<div class="tbl"><table class="compare">
+<thead><tr><th></th><th>Smart vents</th><th>Traditional zoning</th><th>Manufacturer zoning</th><th>This project</th></tr></thead>
+<tbody>
+<tr><td>Damper location</td><td>Every room register</td><td>Trunk or branch ducts</td><td>Trunk or branch ducts</td><td><strong>Basement branch take-offs</strong></td></tr>
+<tr><td>Rooms / zones</td><td>Per room</td><td>Usually 2–4 zones</td><td>Up to ~4–8 zones</td><td><strong>Per room, 8–20 branches</strong></td></tr>
+<tr><td>Damper control</td><td>Modulating louvers</td><td>Mostly open/closed</td><td>Often modulating</td><td><strong>Modulating with position feedback</strong></td></tr>
+<tr><td>Pressure protection</td><td>Rules or add-on sensor</td><td>Bypass or add-on controller</td><td>Built in</td><td><strong>Built in, measured</strong></td></tr>
+<tr><td>Any furnace / thermostat</td><td>Yes</td><td>Yes</td><td>No, matched equipment</td><td><strong>Yes (24 V systems)</strong></td></tr>
+<tr><td>Setup</td><td>DIY</td><td>Contractor design</td><td>Contractor</td><td><strong>Guided, self-commissioning</strong></td></tr>
+<tr><td>Batteries in ducts</td><td>Yes</td><td>No</td><td>No</td><td><strong>No</strong></td></tr>
+</tbody></table></div>
+</section>
+
+<section id="prototype">
+<h2>Prototype plan</h2>
+<p>The first prototype favors speed over polish:</p>
+<ul>
+<li><strong>Controller:</strong> ESP32 board with a relay/opto interface to the 24 V thermostat wiring, a 0–500 Pa differential pressure sensor, and two temperature probes.</li>
+<li><strong>Dampers:</strong> off-the-shelf round balancing dampers fitted with geared motors and magnetic angle sensors.</li>
+<li><strong>Room sensors:</strong> Thread or Zigbee temperature/humidity sensors.</li>
+<li><strong>Software:</strong> ESPHome and Home Assistant for the first version, moving the control loop onto the controller once the logic is proven.</li>
+</ul>
+<figure>
+<div class="diagram">
+<pre class="mermaid">
+flowchart LR
+    P1["Phase 1<br/>Monitor only<br/>pressure, temps, rooms"] --> P2["Phase 2<br/>Automatic balancing<br/>keep rooms close to thermostat"]
+    P2 --> P3["Phase 3<br/>Per-room setpoints<br/>airflow allocator"]
+    P3 --> P4["Phase 4<br/>Self-commissioning<br/>+ predictive control"]
+</pre>
+</div>
+<figcaption>Starting in monitor-only mode is deliberate: it measures how the home's duct system actually behaves before any damper moves.</figcaption>
+</figure>
+
+<h3>Design principles</h3>
+<ol class="principles">
+<li><span><strong>Do no harm to the HVAC equipment.</strong> Pressure and temperature limits come before comfort.</span></li>
+<li><span><strong>Redistribute, don't shut off.</strong> Air is steered, never trapped.</span></li>
+<li><span><strong>Fail open.</strong> Any fault returns the house to its original behavior.</span></li>
+<li><span><strong>Local first.</strong> The house keeps working without the internet.</span></li>
+<li><span><strong>No lock-in.</strong> Any 24 V thermostat and equipment; open integrations.</span></li>
+</ol>
+</section>
+
+<footer>
+<p>Background research for this project included manufacturer documentation for existing zoning products and smart vents, ACCA Manual Zr (the residential zoning design standard), Lawrence Berkeley National Laboratory's register-closing study, a 2022 Minnesota Department of Commerce study on residential zoning energy savings, and UL 60335-2-40 requirements for A2L refrigerants.</p>
+</footer>
+
+</div>
+
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs";
+
+const css = getComputedStyle(document.documentElement);
+const v = (name) => css.getPropertyValue(name).trim();
+const dark = v("color-scheme") === "dark";
+
+mermaid.initialize({
+  startOnLoad: false,
+  securityLevel: "strict",
+  theme: "base",
+  fontFamily: '"Source Sans 3", "Segoe UI", Helvetica, Arial, sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    background: v("--paper"),
+    primaryColor: v("--accent-soft"),
+    primaryBorderColor: v("--accent"),
+    primaryTextColor: v("--ink"),
+    secondaryColor: v("--warm-soft"),
+    tertiaryColor: v("--soft"),
+    lineColor: v("--muted"),
+    textColor: v("--ink"),
+    clusterBkg: v("--soft"),
+    clusterBorder: v("--rule"),
+    edgeLabelBackground: v("--paper"),
+    actorBkg: v("--accent-soft"),
+    actorBorder: v("--accent"),
+    actorTextColor: v("--ink"),
+    signalColor: v("--ink"),
+    signalTextColor: v("--ink"),
+    labelBoxBkgColor: v("--soft"),
+    labelBoxBorderColor: v("--rule"),
+    loopTextColor: v("--ink"),
+    noteBkgColor: v("--warm-soft"),
+    noteTextColor: v("--ink"),
+    fontSize: "15px"
+  },
+  flowchart: { htmlLabels: true, curve: "basis" }
+});
+
+await mermaid.run({ querySelector: "pre.mermaid" });
+</script>
+</body>
+</html>
