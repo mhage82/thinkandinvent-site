@@ -90,6 +90,7 @@ footer p{max-width:72ch}
     <a href="#how-it-works">How it works</a>
     <a href="#hard-part">The hard part</a>
     <a href="#control">Control strategy</a>
+    <a href="#register-check">Register airflow check</a>
     <a href="#setup">Setup</a>
     <a href="#fail-safe">Fail-safe</a>
     <a href="#compare">Comparison</a>
@@ -114,6 +115,8 @@ flowchart TB
         RS3["Room sensor<br/>one per room"]
         TSTAT["Existing thermostat<br/>any 24 V brand"]
         APP["Phone app / web UI<br/>Home Assistant / Matter"]
+        RG1["Register airflow sensor<br/>clip-on, under the grille"]
+        RG2["Register airflow sensor<br/>one per register"]
     end
 
     subgraph BASEMENT["Basement"]
@@ -129,6 +132,8 @@ flowchart TB
     RS1 -.->|Thread / Zigbee| CTRL
     RS2 -.->|Thread / Zigbee| CTRL
     RS3 -.->|Thread / Zigbee| CTRL
+    RG1 -.->|relative airflow| CTRL
+    RG2 -.->|relative airflow| CTRL
     APP <-.->|home Wi-Fi| CTRL
     TSTAT -->|heat / cool calls| CTRL
     CTRL -->|pass-through or staged calls| FURN
@@ -139,7 +144,7 @@ flowchart TB
     CTRL ==>|"wired bus, power + data"| D3
 </pre>
 </div>
-<figcaption>Wireless only where wires are hard (the rooms). Everything in the basement is wired, and home Wi-Fi is used only for the app.</figcaption>
+<figcaption>Wireless only where wires are hard (the rooms). Everything in the basement is wired, and home Wi-Fi is used only for the app. Register airflow sensors are optional: see <a href="#register-check">Register airflow check</a>.</figcaption>
 </figure>
 
 <div class="tbl"><table>
@@ -150,6 +155,7 @@ flowchart TB
 <tr><td>Branch dampers</td><td>Each branch take-off</td><td>Round modulating dampers with position feedback, wired to the controller for power and data</td></tr>
 <tr><td>Static pressure sensor</td><td>Supply plenum</td><td>Measures how hard the blower is pushing: the key safety signal when dampers close</td></tr>
 <tr><td>Air temperature probes</td><td>Supply and return ducts</td><td>Detect furnace overheating and AC coil-freeze risk</td></tr>
+<tr><td>Register airflow sensors <em>(optional)</em></td><td>Clipped under each register grille</td><td>Report relative airflow at each register, so the controller can map dampers to registers quickly and confirm air actually arrives</td></tr>
 <tr><td>App</td><td>Phone or browser</td><td>Setpoints per room, schedules, diagnostics. Integrates with Home Assistant and Matter</td></tr>
 </tbody></table></div>
 
@@ -199,6 +205,7 @@ flowchart TD
 <tr><td>AC coil freeze</td><td>Supply air temperature trend</td><td>Open dampers before the coil gets near freezing</td></tr>
 <tr><td>Refrigerant leak (A2L)</td><td>Signal from the HVAC equipment</td><td>Open every damper and run the fan immediately</td></tr>
 <tr><td>Second stage</td><td>Heat or cool stage 2 call</td><td>Allow only when enough of the duct system is open</td></tr>
+<tr><td>Airflow mismatch <em>(with register sensors)</em></td><td>Register sees much less air than the model expects</td><td>Treat that branch as closed, open other dampers, and flag it for inspection</td></tr>
 </tbody></table></div>
 </section>
 
@@ -231,9 +238,67 @@ flowchart TD
 </ul>
 </section>
 
+<section id="register-check">
+<h2>Register airflow check</h2>
+<p>Without it, the controller works out which damper feeds which room by closing a damper and waiting for room temperatures to drift. That takes tens of minutes per damper, and an open door or afternoon sun can fool it. A small airflow sensor clipped under each register grille sees the answer in seconds.</p>
+
+<h3>What it adds</h3>
+<ul>
+<li><strong>Fast, reliable mapping.</strong> Close one damper; the register whose airflow drops belongs to it. Shared branches and rooms with two registers show up automatically, and it works with the fan alone, without heating or cooling.</li>
+<li><strong>A check on the airflow model.</strong> The controller predicts how much air each register should get; the sensor confirms it. That catches a stuck damper, a crushed or disconnected duct, a register someone closed, or furniture blocking a vent.</li>
+<li><strong>Better safety evidence.</strong> If a branch the controller believes is open shows little or no air, it opens other dampers instead of trusting the model.</li>
+</ul>
+
+<figure>
+<div class="diagram">
+<pre class="mermaid">
+flowchart LR
+    M["Airflow model<br/>expected share per register"] --> CMP{"Measured vs expected<br/>within tolerance?"}
+    S["Register sensor<br/>measured relative airflow"] --> CMP
+    CMP -->|Yes| OK["Keep model<br/>small correction to damper curve"]
+    CMP -->|"Low, once"| RE["Re-check<br/>after dampers settle"]
+    CMP -->|"Low, repeatedly"| FL["Treat branch as closed<br/>open other dampers<br/>flag for inspection"]
+    RE --> CMP
+</pre>
+</div>
+<figcaption>The register sensor checks the model; it doesn't replace the plenum pressure sensor, which remains the primary safety signal.</figcaption>
+</figure>
+
+<h3>How to sense it</h3>
+<div class="tbl"><table>
+<thead><tr><th>Sensor type</th><th>How it works</th><th>Power</th><th>Rough cost</th><th>Fit</th></tr></thead>
+<tbody>
+<tr><td>Pressure difference across the grille</td><td>Airflow through a grille tracks the square root of the pressure drop across it</td><td>Very low; reads in milliseconds</td><td>$15–30</td><td><strong>Best overall.</strong> Battery-friendly, no moving parts</td></tr>
+<tr><td>Supply-air thermistor</td><td>Detects conditioned air arriving: temperature jumps when the damper opens</td><td>Almost none</td><td>Under $1</td><td><strong>Cheapest.</strong> Good for mapping, but only while heating or cooling, not fan-only</td></tr>
+<tr><td>Heated-wire anemometer</td><td>Measures air speed from how fast a heated element cools</td><td>High (tens of mA)</td><td>$10–25</td><td>Poor on batteries</td></tr>
+<tr><td>Small spinning vane</td><td>Counts rotation with a magnetic pickup</td><td>Low</td><td>About $5</td><td>Moving parts; can rattle or clog with dust</td></tr>
+</tbody></table></div>
+
+<h3>Reservations</h3>
+<div class="callout"><p><strong>Relative airflow is easy; exact airflow is hard.</strong> Air speed across a grille is uneven, and every register style behaves differently. HVAC professionals use a flow hood for exact CFM. Register sensors are good for "which damper feeds this register" and "this branch dropped 40% from its baseline," not for reporting precise room airflow.</p></div>
+<ul>
+<li><strong>It brings hardware back into the rooms.</strong> Keeping everything in the basement was a main goal. The sensor must stay small and invisible: a clip-on puck under the existing grille, with no motor and nothing changed on the surface.</li>
+<li><strong>It adds a battery device per register.</strong> A home with 15 registers means 15 more batteries to replace and 15 more radios. Measuring only on request, a few times a day, keeps battery life in years.</li>
+<li><strong>It adds cost per room.</strong> Roughly $15–30 of sensor per register in prototype quantities, before the radio, battery and housing.</li>
+<li><strong>Sensors get dirty or knocked loose.</strong> Dust, vacuum cleaners and pets will disturb them. A reading that disagrees with everything else should mark the sensor as suspect, not the duct.</li>
+<li><strong>A sensor in the register can't measure the room.</strong> It sits in supply air. If it's combined with the room sensor, the room temperature has to come from a separate point on the wall, with only a short probe reaching the register.</li>
+<li><strong>Prior art exists.</strong> Older patents cover registers with airflow sensors, including the Kates/Google family (mostly expired) and EcoVent's register-sensor patent (US 9,854,335). Using register sensors to map and verify dampers placed at the basement take-offs looks less covered, but needs a patent attorney's review.</li>
+</ul>
+
+<h3>Three ways to offer it</h3>
+<div class="tbl"><table>
+<thead><tr><th>Option</th><th>What it is</th><th>Trade-off</th></tr></thead>
+<tbody>
+<tr><td>Installer tool</td><td>Clip sensors into the registers during setup, run the mapping, remove them</td><td>Cheapest; living space stays untouched; no ongoing check</td></tr>
+<tr><td>Permanent register sensors</td><td>One sensor stays in each register</td><td>Ongoing airflow checks and fault detection; most cost and batteries</td></tr>
+<tr><td>Combined room unit</td><td>Wall room sensor with a short probe into the nearest register</td><td>One device per room; only practical where the register is near the wall-mounting point</td></tr>
+</tbody></table></div>
+<p>The prototype uses permanent pressure-difference sensors, so real data can show whether the ongoing check catches enough problems to justify its cost, or whether the installer-tool version is enough.</p>
+</section>
+
 <section id="setup">
 <h2>Setup: the system learns the house</h2>
-<p>The biggest barrier to zoning an existing home is the manual design and balancing work. The goal is for the system to commission itself.</p>
+<p>The biggest barrier to zoning an existing home is the manual design and balancing work. The goal is for the system to commission itself. With register airflow sensors, the mapping step takes seconds per damper; without them, it falls back on slower room temperature response.</p>
 <figure>
 <div class="diagram">
 <pre class="mermaid">
@@ -242,16 +307,22 @@ sequenceDiagram
     participant C as Controller
     participant D as Dampers
     participant F as Blower
+    participant G as Register sensors
     participant R as Room sensors
 
     I->>C: Register each damper (duct size, location)
     C->>F: Run fan only
     C->>D: Open all dampers
     C->>C: Record baseline plenum pressure
+    G-->>C: Baseline airflow at every register
     loop For each damper
         C->>D: Close this damper
-        R-->>C: Room temperatures respond
-        C->>C: Link damper to the room(s) that react
+        alt Register sensors installed
+            G-->>C: Airflow drops at matching registers (seconds)
+        else No register sensors
+            R-->>C: Room temperatures drift (tens of minutes)
+        end
+        C->>C: Link damper to the register(s) and room(s) that react
         C->>D: Step damper through positions
         C->>C: Fit damper airflow curve from pressure change
         C->>D: Reopen damper
@@ -314,7 +385,8 @@ stateDiagram-v2
 <tr><td>Pressure protection</td><td>Rules or add-on sensor</td><td>Bypass or add-on controller</td><td>Built in</td><td><strong>Built in, measured</strong></td></tr>
 <tr><td>Any furnace / thermostat</td><td>Yes</td><td>Yes</td><td>No, matched equipment</td><td><strong>Yes (24 V systems)</strong></td></tr>
 <tr><td>Setup</td><td>DIY</td><td>Contractor design</td><td>Contractor</td><td><strong>Guided, self-commissioning</strong></td></tr>
-<tr><td>Batteries in ducts</td><td>Yes</td><td>No</td><td>No</td><td><strong>No</strong></td></tr>
+<tr><td>Batteries in ducts</td><td>Yes</td><td>No</td><td>No</td><td><strong>No (optional register sensors sit at the grille)</strong></td></tr>
+<tr><td>Airflow verification per room</td><td>Some models sense duct pressure</td><td>Rare</td><td>Estimated at the equipment</td><td><strong>Optional register sensors (relative airflow)</strong></td></tr>
 </tbody></table></div>
 </section>
 
@@ -325,6 +397,7 @@ stateDiagram-v2
 <li><strong>Controller:</strong> ESP32 board with a relay/opto interface to the 24 V thermostat wiring, a 0–500 Pa differential pressure sensor, and two temperature probes.</li>
 <li><strong>Dampers:</strong> off-the-shelf round balancing dampers fitted with geared motors and magnetic angle sensors.</li>
 <li><strong>Room sensors:</strong> Thread or Zigbee temperature/humidity sensors.</li>
+<li><strong>Register sensors:</strong> small pressure-difference sensors clipped under each grille, with a thermistor for supply-air detection, measuring only when the controller asks.</li>
 <li><strong>Software:</strong> ESPHome and Home Assistant for the first version, moving the control loop onto the controller once the logic is proven.</li>
 </ul>
 <figure>
