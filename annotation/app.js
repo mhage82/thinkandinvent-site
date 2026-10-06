@@ -35,8 +35,8 @@
       figure.append(image, textElement("figcaption", example.explanation));
       $("example-gallery").append(figure);
     }
-    $("contact").textContent = study.contact ? `Questions or return of results: ${study.contact}` : "Organizer setup pending: add a contact and reviewed image examples before inviting students.";
-    $("guide-version").textContent = `Guidelines ${study.guidelines_version}. Text examples above are illustrative; reviewed photo examples should be supplied by the organizer.`;
+    $("contact").textContent = study.contact ? `Questions or return of results: ${study.contact}` : "";
+    $("contact").hidden = !study.contact;
     $("return-instructions").textContent = study.return_instructions;
   }
 
