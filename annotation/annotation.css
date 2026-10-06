@@ -62,7 +62,6 @@ body.annotating main { max-width: 1800px; padding: .65rem 1.2rem; }
 #workspace fieldset { margin-bottom: .6rem; }
 #workspace legend { font-size: .98rem; }
 #workspace .hint { margin: .3rem 0; font-size: .78rem; }
-#usability-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0 .4rem; }
 #workspace button { padding: .45rem .7rem; font-size: .88rem; }
 #workspace .navigation { flex-wrap: nowrap; justify-content: center; margin-top: .25rem; }
 #workspace .navigation select { padding: .35rem; }
@@ -82,4 +81,25 @@ body.annotating #storage-status { font-size: .75rem; margin: .3rem 0; color: var
   #workspace .panel { padding: .6rem; }
   body.annotating main { padding: .65rem; }
   #workspace > .toolbar { gap: .3rem; }
+}
+
+/* Allocate image space from the actual remaining viewport, without a fixed minimum. */
+body.annotating main { height: calc(100dvh - 38px); display: flex; flex-direction: column; min-height: 0; }
+body.annotating #workspace { flex: 1; min-height: 0; display: grid; grid-template-rows: auto 6px minmax(0, 1fr) auto; gap: .5rem; }
+#workspace > progress { margin: 0; }
+#workspace .review-layout { height: auto; min-height: 0; align-items: stretch; grid-template-columns: minmax(0, 1fr) clamp(280px, 30vw, 400px); }
+#workspace .image-panel { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; min-width: 0; overflow: hidden; }
+#workspace .image-stage { min-width: 0; min-height: 0; width: 100%; height: auto; }
+#workspace #photo { display: block; width: 100%; height: 100%; min-height: 0; max-width: 100%; max-height: 100%; object-fit: contain; }
+#workspace #annotation-form { align-self: start; }
+#workspace .save-bar { margin: 0; }
+body.annotating #storage-status { flex-shrink: 0; }
+@media (max-width: 850px) {
+  body.annotating main { height: auto; min-height: calc(100dvh - 38px); }
+  body.annotating #workspace { display: block; }
+  #workspace > progress { margin: .5rem 0; }
+  #workspace .review-layout { grid-template-columns: 1fr; height: auto; }
+  #workspace .image-panel { height: clamp(200px, 45dvh, 430px); }
+  #workspace .image-stage { height: auto; }
+  #workspace .save-bar { margin-top: .5rem; }
 }

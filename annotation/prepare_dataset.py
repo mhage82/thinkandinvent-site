@@ -121,8 +121,8 @@ def main():
     args = parser.parse_args()
     try:
         study = json.loads(args.study.read_text(encoding="utf-8-sig"))
-        if not study.get("labels") or not study.get("usability"):
-            raise ValueError("Study needs labels and usability choices.")
+        if not study.get("labels"):
+            raise ValueError("Study needs artifact labels.")
         report = prepare(args.source, args.output, args.private_report_dir, study, args.manifest)
     except (ValueError, OSError) as error:
         parser.exit(1, f"Cannot prepare study: {error}\n")

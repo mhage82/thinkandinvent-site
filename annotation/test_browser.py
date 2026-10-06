@@ -66,58 +66,66 @@ def main():
             expect(page.locator('input[name="artifact"]').first).to_be_enabled()
             expect(page.locator('#notes')).to_have_count(0)
             expect(page.locator('#save-next')).to_have_count(0)
+            expect(page.locator('#usability-options')).to_have_count(0)
+            expect(page.locator('#report-broken')).to_have_count(0)
+            names = page.locator('#label-options label span').all_text_contents()
+            assert names == ['Physical Obstruction', 'Exposure Fault', 'Lens Contamination', 'Optical/Motion Blur', 'Lens Fog / Condensation'], names
             page.set_viewport_size({"width": 1366, "height": 768})
             page.locator('[value="lens_contamination"]').check()
-            page.locator('[value="partial_obstruction"]').check()
+            page.locator('[value="physical_obstruction"]').check()
             page.locator('[value="none"]').check()
             assert page.locator('input[name="artifact"]:checked').count() == 1
             page.locator('[value="lens_contamination"]').check()
-            page.locator('[value="partial_obstruction"]').check()
+            page.locator('[value="physical_obstruction"]').check()
             expect(page.locator('[value="none"]')).not_to_be_checked()
-            page.locator('[name="usability"][value="usable"]').check()
             expect(page.locator("#progress-text")).to_contain_text("1 labeled")
             assert page.evaluate("document.documentElement.scrollHeight <= window.innerHeight"), "Laptop layout needs page scrolling"
             assert page.locator('#annotation-form').evaluate('(el) => el.scrollHeight <= el.clientHeight'), "Label controls need scrolling"
+            for width, height in [(1366,768),(1280,600),(1024,700)]:
+                page.set_viewport_size({'width':width,'height':height})
+                assert page.evaluate('document.documentElement.scrollHeight <= innerHeight'), f'Page overflows {width}x{height}'
+                assert page.locator('#photo').evaluate('(img) => {const r=img.getBoundingClientRect();const p=img.parentElement.getBoundingClientRect();return r.top>=p.top-1 && r.bottom<=p.bottom+1 && r.left>=p.left-1 && r.right<=p.right+1 && getComputedStyle(img).objectFit==="contain";}'), 'Image does not fit its window'
+            page.set_viewport_size({'width':1366,'height':768})
             page.screenshot(path=str(args.artifacts / "annotation-desktop.png"), full_page=True)
+            page.locator('#show-guide').click()
+            expect(page.locator('#guide-dialog')).to_be_visible()
+            page.locator('#close-guide').click()
             page.locator("#next").click()
             expect(page.locator("#image-heading")).to_have_text("Image 2 of 3")
             expect(page.locator('input[name="artifact"]:checked')).to_have_count(0)
             page.locator('[value="none"]').check()
-            # Save results must include current selections before Next or usability.
+            # Save results includes selections immediately, without clicking Next.
             with page.expect_download() as partial_download:
                 page.locator('#export-json').click()
             partial_path = args.artifacts / 'partial-results.json'
             partial_download.value.save_as(partial_path)
             partial = json.loads(partial_path.read_text())
             assert partial['annotations']['two']['artifact_judgment'] == 'none'
-            assert partial['annotations']['two']['status'] == 'draft'
+            expect(page.locator('#progress-text')).to_contain_text('2 labeled')
+            assert partial['annotations']['two']['status'] == 'annotated'
             assert 'confidence' not in partial['annotations']['one']
             assert 'notes' not in partial['annotations']['one']
-            # Partial answer remains saved after reload.
+            # Automatically completed answer remains saved after reload.
             page.reload()
             page.locator("#annotator").fill("tester-01")
             page.locator("#read-guidelines").check()
             page.locator('#start-form button').click()
             expect(page.locator("#image-heading")).to_have_text("Image 2 of 3")
             expect(page.locator('[value="none"]')).to_be_checked()
-            expect(page.locator("#progress-text")).to_contain_text("1 labeled")
-            page.locator('[name="usability"][value="usable"]').check()
+            expect(page.locator("#progress-text")).to_contain_text("2 labeled")
             page.locator("#next").click()
             expect(page.locator("#image-status")).to_contain_text("could not load")
             expect(page.locator('input[name="artifact"]').first).to_be_disabled()
-            page.once("dialog", lambda dialog: dialog.accept())
-            page.locator("#report-broken").click()
-            expect(page.locator("#progress-text")).to_contain_text("2 labeled · 1 image issues · 0 unfinished")
+            expect(page.locator("#progress-text")).to_contain_text("1 unfinished")
             with page.expect_download() as download:
                 page.locator("#export-json").click()
             json_path = args.artifacts / "results.json"
             download.value.save_as(json_path)
             results = json.loads(json_path.read_text())
-            assert set(results["annotations"]["one"]["labels"]) == {"lens_contamination", "partial_obstruction"}
-            assert results["annotations"]["one"]["usability"] == "usable"
+            assert set(results["annotations"]["one"]["labels"]) == {"lens_contamination", "physical_obstruction"}
             assert results["annotations"]["one"]["filename"] == "image_0051.jpg"
-            assert results["annotations"]["three"]["filename"] == "image_0100.jpg"
-            assert results["annotations"]["three"]["status"] == "image_unavailable"
+            assert "three" not in results["annotations"]
+            assert all("usability" not in row and "confidence" not in row and "notes" not in row for row in results["annotations"].values())
             with page.expect_download() as download:
                 page.locator("#export-csv").click()
             download.value.save_as(args.artifacts / "results.csv")
@@ -135,7 +143,7 @@ def main():
             page.locator("#previous").click()
             page.locator("#previous").click()
             expect(page.locator('[value="lens_contamination"]')).to_be_checked()
-            page.locator('[value="partial_obstruction"]').uncheck()
+            page.locator('[value="physical_obstruction"]').uncheck()
             expect(page.locator("#progress-text")).to_contain_text("2 labeled")
             with page.expect_download() as edited_download:
                 page.locator('#export-json').click()
@@ -165,8 +173,7 @@ def main():
             expect(blocked.locator("#progress")).to_have_attribute("max", "1")
             expect(blocked.locator("#next")).to_be_disabled()
             blocked.locator('[value="none"]').check()
-            blocked.locator('[name="usability"][value="usable"]').check()
-            expect(blocked.locator("#progress-text")).to_contain_text("1 labeled · 0 image issues · 0 unfinished")
+            expect(blocked.locator("#progress-text")).to_contain_text("0 unfinished")
             empty = context.new_page()
             empty_data = {**dataset, "groups": [{**g, "image_ids": []} for g in dataset["groups"]]}
             empty.route("**/data/dataset.json", lambda route: route.fulfill(json=empty_data))
@@ -181,7 +188,7 @@ def main():
             expect(preview.locator("#local-file-notice")).to_be_visible()
             assert not errors, errors
             browser.close()
-        print("PASS: automatic saving, Next navigation, partial and edited exports, original filenames, no confidence/notes, browser resume, laptop layout without scrolling, mobile layout, independent groups and missing images.")
+        print("PASS: five exact labels, artifact-only autosave, exports and filenames, no removed controls, resume, image fit at multiple laptop sizes, mobile layout, guide dialog, independent groups and failed image loads.")
     finally:
         server.shutdown()
         server.server_close()

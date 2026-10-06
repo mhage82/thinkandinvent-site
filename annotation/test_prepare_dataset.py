@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 from prepare_dataset import GROUP_IDS, collect_groups, prepare
 
-STUDY = {"guidelines_version": "test", "labels": [{"id": "fog"}], "usability": [{"id": "usable"}]}
+STUDY = {"guidelines_version": "test", "labels": [{"id": "fog"}]}
 
 
 class ManualGroupTests(unittest.TestCase):

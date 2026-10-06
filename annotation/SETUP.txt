@@ -77,11 +77,11 @@ Student workflow (also on the page)
    select the assigned group.
 2. Inspect each image; enlarge when helpful. Select every visible artifact, or
    explicitly choose no listed artifact / unsure.
-3. Rate usability separately: a few lens droplets or a small corner obstruction
-   can still leave a scene Usable.
+3. Apply all visible labels: Physical Obstruction, Exposure Fault, Lens
+   Contamination, Optical/Motion Blur, and Lens Fog / Condensation. Even small
+   defects count. Use no listed artifact / unsure when appropriate.
 4. Selections save automatically as you click. Next moves to the next image.
-   Previous and the image selector let you review answers. Report broken images
-   instead of guessing labels.
+   Previous and the image selector let you review answers.
 5. Click Save results at any time to download all selections so far as JSON. Progress is also saved
    in the same browser when storage works. Resume with the same code/group.
    CSV is an optional readable copy; downloaded files cannot be imported.
@@ -92,9 +92,9 @@ Output and analysis
 JSON and CSV include filename, the original name from that image's group folder,
 alongside the stable image ID. This metadata does not reset existing progress.
 JSON stores study, annotator, group and stable image IDs. Each answer contains
-a labels array, artifact_judgment, usability, status and
+a labels array, artifact_judgment, status and
 approximate active_seconds. CSV uses | between multiple labels. Drafts, pending
-items and unavailable images are not negative labels. JSON is the results format.
+items are not negative labels. JSON is the results format.
 Join dataset_id + image_id across DIFFERENT annotator codes for agreement.
 Multiple exports by one person are versions, not additional votes. The private
 report lists images shared by any groups and those shared by all three. Keep
@@ -115,7 +115,7 @@ Tests
   python -m unittest discover -s annotation -p test_prepare_dataset.py -v
   python annotation/test_browser.py --artifacts "C:\path\outside-site\test-results"
 Browser tests require Playwright for Python and installed Chrome. Synthetic
-fixtures check multiple labels, browser drafts/resume, exports, unavailable images,
+fixtures check multiple labels, browser drafts/resume, exports, failed image loads,
 unequal group lengths, empty groups, mobile width and unavailable browser storage.
 Test the full workflow with real images before inviting students.
 
@@ -127,3 +127,8 @@ The user then specified exactly three manually populated folders, with no fixed
 image count. The automatic grouping plan was removed; the tool now preserves
 folder membership and user-controlled overlap, with dynamic counts in the UI.
 No AI ground-truth labels were assigned. No deployment was performed.
+
+Study version 2.0 uses the final five broader artifact labels, including under-
+exposure and optical defocus. Usability and unavailable-image annotation controls
+were removed. This generates a new study ID; earlier exports/answers remain
+associated with the earlier study and are not silently relabeled.

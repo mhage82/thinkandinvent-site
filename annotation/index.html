@@ -12,8 +12,8 @@
       document.head.append(base);
     }
   </script>
-  <link rel="stylesheet" href="annotation.css?v=compact-20261005">
-  <script src="app.js?v=compact-20261005" defer></script>
+  <link rel="stylesheet" href="annotation.css?v=labels-v2-20261005">
+  <script src="app.js?v=labels-v2-20261005" defer></script>
 </head>
 <body>
   <header><a href="../index.html">Think and Invent</a><span>Image quality study</span></header>
@@ -23,7 +23,7 @@
     <section id="setup" class="panel">
       <p class="eyebrow">Independent annotation</p>
       <h1>Look closely. Label what you see.</h1>
-      <p>Review one image at a time. Select every visible artifact, then judge whether the scene is still usable. A clear, usable image can still have artifacts.</p>
+      <p>Review one image at a time. Select every visible artifact. Even a small defect counts when the rest of the scene is clear.</p>
       <p id="loading" role="status">Loading study…</p>
       <form id="start-form" hidden>
         <label for="annotator">Your assigned annotator code</label>
@@ -46,13 +46,11 @@
           <div class="navigation"><button id="previous" type="button">Previous</button><label for="jump">Image</label><select id="jump"></select><button id="next" type="button">Next</button></div>
         </section>
         <form id="annotation-form" class="panel">
-          <fieldset><legend>1. Which artifacts are visible?</legend><p class="hint">Select all that apply. Even a small affected area counts.</p><div id="label-options"></div>
+          <fieldset><legend>Which artifacts are visible?</legend><p class="hint">Select all that apply. Even a small affected area counts.</p><div id="label-options"></div>
             <label class="choice"><input type="checkbox" name="artifact" value="none"> No listed artifact visible</label>
             <label class="choice"><input type="checkbox" name="artifact" value="uncertain"> Unsure whether any listed artifact is present</label>
           </fieldset>
-          <fieldset><legend>2. Is the scene usable?</legend><div id="usability-options"></div></fieldset>
           <p id="form-error" role="alert"></p>
-          <button type="button" id="report-broken">Image unavailable — record issue</button>
           <p class="hint autosave-hint">Selections save automatically. Click Next to continue.</p>
         </form>
       </div>
@@ -60,10 +58,10 @@
     </section>
     <details id="guidelines" class="panel" open>
       <summary>Labeling guide &amp; examples</summary>
-      <p>Identify visible image defects and separately rate scene usability. Apply multiple labels when multiple artifacts are visible. Do not discuss answers with other annotators before returning your work.</p>
-      <ol><li>Enter the annotator code and group assigned by the organizer.</li><li>Inspect the image; use Enlarge image when needed. Select all visible artifacts, or explicitly choose no listed artifact / unsure.</li><li>Rate usability. “Usable” means you can recognize and describe the main scene and important objects; it does not mean flawless.</li><li>Your selections save automatically. Click Next to continue. Previous and the image selector let you review answers. Resume using the same browser, code, and group.</li><li>Click Save results at any time to download your selections and send it using the instructions below. CSV is an optional readable copy.</li></ol>
+      <p>Identify visible image defects using the five labels below. Apply multiple labels when multiple artifacts are visible. Do not discuss answers with other annotators before returning your work.</p>
+      <ol><li>Enter the annotator code and group assigned by the organizer.</li><li>Inspect the image; use Enlarge image when needed. Select all visible artifacts, or explicitly choose no listed artifact / unsure.</li><li>Your selections save automatically. Click Next to continue. Previous and the image selector let you review answers. Resume using the same browser, code, and group.</li><li>Click Save results at any time to download your selections and send it using the instructions below. CSV is an optional readable copy.</li></ol>
       <div id="label-guide"></div>
-      <h3>Borderline cases</h3><p>A few lens droplets on an otherwise sharp scene: Lens contamination and Usable. A finger at the edge: Partial obstruction and Usable if important content remains visible. Light fog can be Usable; heavy fog may be Partly usable or Unusable. Add Fog and Lens contamination together only when both a veil and distinct spots / smears are visible.</p>
+      <h3>Borderline cases</h3><p>A few lens droplets on an otherwise sharp scene receive Lens Contamination. A finger covering an edge receives Physical Obstruction. Select Exposure Fault for visible loss of detail from excessive brightness or darkness. Optical/Motion Blur includes both defocus and movement blur. Use Lens Fog / Condensation for a veil on the lens; ordinary fog in the scene alone does not count. Apply multiple labels when distinct defects are visible.</p>
       <p>“No listed artifact visible” and “Unsure” are exclusive choices. If you confidently see one artifact but are unsure about another, select the labels you are confident about.</p>
       <p id="return-instructions"></p><div id="example-gallery"></div><p id="contact"></p><p id="guide-version" class="hint"></p>
     </details>

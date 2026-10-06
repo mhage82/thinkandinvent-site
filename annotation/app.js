@@ -8,7 +8,7 @@
   const imageId = () => group.image_ids[index];
   const keyFor = (annotator, groupId) => `image-annotation:${dataset.dataset_id}:${groupId}:${annotator}`;
   const activeKey = () => keyFor(session.annotator_id, group.id);
-  const isComplete = row => row?.status === "annotated" || row?.status === "image_unavailable";
+  const isComplete = row => row?.status === "annotated";
 
   function textElement(tag, text, className) {
     const el = document.createElement(tag);
@@ -20,14 +20,12 @@
   function showGuide() {
     $("label-guide").replaceChildren();
     $("label-options").replaceChildren();
-    $("usability-options").replaceChildren();
     for (const label of study.labels) {
       const card = textElement("article", "", "guide-card");
       card.append(textElement("h3", label.name), textElement("p", label.description), textElement("p", `Illustrative example: ${label.example}`));
       $("label-guide").append(card);
       addChoice($("label-options"), "checkbox", "artifact", label);
     }
-    for (const option of study.usability) addChoice($("usability-options"), "radio", "usability", option);
     $("example-gallery").replaceChildren();
     for (const example of study.examples || []) {
       const figure = document.createElement("figure");
@@ -72,12 +70,11 @@
     const values = {
       labels: selected.filter(x => x !== "none" && x !== "uncertain"),
       artifact_judgment: selected.includes("none") ? "none" : selected.includes("uncertain") ? "uncertain" : selected.length ? "present" : "",
-      usability: choices("usability")[0] || "",
     };
-    if (!previous && !selected.length && !values.usability) return;
+    if (!previous && !selected.length) return;
     const changed = !previous || Object.keys(values).some(k => JSON.stringify(previous[k]) !== JSON.stringify(values[k]));
-    const status = previous?.status === "image_unavailable" && !changed ? "image_unavailable" : values.artifact_judgment && values.usability ? "annotated" : "draft";
-    const {confidence, notes, ...retained} = previous || {};
+    const status = values.artifact_judgment ? "annotated" : "draft";
+    const {confidence, notes, usability, ...retained} = previous || {};
     session.annotations[id] = {
       ...retained, ...values, image_id: id, status,
       started_at: previous?.started_at || now(),
@@ -88,26 +85,18 @@
   }
 
   function progress() {
-    let annotated = 0, issues = 0;
-    for (const id of group.image_ids) {
-      if (session.annotations[id]?.status === "annotated") annotated++;
-      if (session.annotations[id]?.status === "image_unavailable") issues++;
-    }
+    const annotated = group.image_ids.filter(id => isComplete(session.annotations[id])).length;
     $("progress").max = group.image_ids.length;
-    $("progress").value = annotated + issues;
-    $("progress-text").textContent = `${annotated} labeled · ${issues} image issues · ${group.image_ids.length - annotated - issues} unfinished`;
-    $("completion-heading").textContent = annotated + issues === group.image_ids.length ? "Group finished — save and return your results" : "Save your results at any time";
-    $("jump").replaceChildren(...group.image_ids.map((id, n) => {
-      const row = session.annotations[id];
-      return new Option(`${n + 1}${row?.status === "annotated" ? " ✓" : row?.status === "image_unavailable" ? " !" : row ? " ·" : ""}`, String(n), false, n === index);
-    }));
+    $("progress").value = annotated;
+    $("progress-text").textContent = `${annotated} labeled · ${group.image_ids.length - annotated} unfinished`;
+    $("completion-heading").textContent = annotated === group.image_ids.length ? "Group finished — save and return your results" : "Save your results at any time";
+    $("jump").replaceChildren(...group.image_ids.map((id, n) => new Option(`${n + 1}${isComplete(session.annotations[id]) ? " ✓" : ""}`, String(n), false, n === index)));
   }
 
   function render() {
     const id = imageId(), row = session.annotations[id];
     $("annotation-form").reset();
     for (const input of document.querySelectorAll('input[name="artifact"]')) input.checked = row?.labels?.includes(input.value) || row?.artifact_judgment === input.value;
-    for (const name of ["usability"]) for (const input of document.querySelectorAll(`input[name="${name}"]`)) input.checked = input.value === row?.[name];
     $("form-error").textContent = "";
     $("image-heading").textContent = `Image ${index + 1} of ${group.image_ids.length}`;
     $("previous").disabled = index === 0;
@@ -124,11 +113,11 @@
       imageReady = true;
       $("zoom").disabled = false;
       for (const field of $("annotation-form").querySelectorAll("fieldset")) field.disabled = false;
-      $("image-status").textContent = row?.status === "image_unavailable" ? "Previously reported unavailable. New selections will replace that report." : "";
+      $("image-status").textContent = "";
     };
     photo.onerror = () => {
       if ($("photo") !== photo) return;
-      $("image-status").textContent = "This image could not load. Check your connection or record an image issue; do not guess labels.";
+      $("image-status").textContent = "This image could not load. Refresh the page or move to another image with Next.";
     };
     $("photo").replaceWith(photo);
     photo.src = new URL(dataset.images[id].src, assetBase).href;
@@ -150,11 +139,10 @@
     if (!targetGroup?.image_ids.length || !/^[A-Za-z0-9_-]{1,64}$/.test(value.annotator_id)) throw Error("Invalid or empty group, or invalid annotator code.");
     if (!value.annotations || Array.isArray(value.annotations) || typeof value.annotations !== "object") throw Error("Invalid annotations.");
     for (const [id, row] of Object.entries(value.annotations)) {
-      if (!targetGroup.image_ids.includes(id) || row.image_id !== id || !["draft", "annotated", "image_unavailable"].includes(row.status)) throw Error("Results contain an invalid image or status.");
+      if (!targetGroup.image_ids.includes(id) || row.image_id !== id || !["draft", "annotated"].includes(row.status)) throw Error("Results contain an invalid image or status.");
       if (!Array.isArray(row.labels) || new Set(row.labels).size !== row.labels.length || row.labels.some(x => !study.labels.some(l => l.id === x))) throw Error("Results contain an unknown or duplicate label.");
       if (!["", "none", "uncertain", "present"].includes(row.artifact_judgment) || (row.artifact_judgment === "present") !== (row.labels.length > 0)) throw Error("Artifact choices are inconsistent.");
-      if (!["", ...study.usability.map(x => x.id)].includes(row.usability)) throw Error("Results contain an invalid answer.");
-      if (row.status === "annotated" && (!row.artifact_judgment || !row.usability)) throw Error("A completed annotation is missing answers.");
+      if (row.status === "annotated" && (!row.artifact_judgment)) throw Error("A completed annotation is missing answers.");
       if (!Number.isFinite(row.active_seconds) || row.active_seconds < 0) throw Error("Invalid timing data.");
     }
     return value;
@@ -170,10 +158,10 @@
     document.body.classList.add("annotating");
     $("guide-content").append($("guidelines"));
     $("guidelines").open = true;
-    // Older sessions retain their labels; confidence and notes are no longer collected.
+    // Only artifact selections are collected by this study version.
     for (const row of Object.values(session.annotations)) {
-      delete row.confidence; delete row.notes;
-      if (row.status !== "image_unavailable") row.status = row.artifact_judgment && row.usability ? "annotated" : "draft";
+      delete row.confidence; delete row.notes; delete row.usability;
+      row.status = row.artifact_judgment ? "annotated" : "draft";
     }
     window.scrollTo(0, 0);
     $("group-heading").textContent = `${group.name} · ${annotator}`;
@@ -200,18 +188,10 @@
     saveSelections(); persist(); progress();
   });
   $("annotation-form").addEventListener("submit", event => event.preventDefault());
-  $("report-broken").addEventListener("click", () => {
-    if (!confirm("Record this image as unavailable? This replaces any labels for this image with an issue report.")) return;
-    saveSelections();
-    session.annotations[imageId()] = {image_id: imageId(), labels: [], artifact_judgment: "", usability: "", status: "image_unavailable", started_at: session.annotations[imageId()]?.started_at || now(), updated_at: now(), active_seconds: session.annotations[imageId()]?.active_seconds || 0};
-    // Clear controls before navigation so saving a draft cannot restore old labels.
-    $("annotation-form").reset();
-    persist(); navigate(Math.min(index + 1, group.image_ids.length - 1));
-  });
   $("previous").onclick = () => navigate(index - 1);
   $("next").onclick = () => navigate(index + 1);
   $("jump").onchange = () => navigate(Number($("jump").value));
-  $("first-pending").onclick = () => { const pending = group.image_ids.findIndex(id => !isComplete(session.annotations[id])); if (pending >= 0) navigate(pending); else $("export-status").textContent = "All images are labeled or reported unavailable. Download and return your results."; };
+  $("first-pending").onclick = () => { const pending = group.image_ids.findIndex(id => !isComplete(session.annotations[id])); if (pending >= 0) navigate(pending); else $("export-status").textContent = "All images are labeled. Download and return your results."; };
   $("change-group").onclick = () => { saveSelections(); persist(); session = null; group = null; $("workspace").hidden = true; $("setup").hidden = false; document.body.classList.remove("annotating"); $("storage-status").before($("guidelines")); };
   $("zoom").onclick = () => { if (imageReady) { $("zoom-photo").src = $("photo").src; $("image-dialog").showModal(); } };
   $("show-guide").onclick = () => $("guide-dialog").showModal();
@@ -228,7 +208,7 @@
       body = JSON.stringify({...session, annotations, exported_at: now()}, null, 2); type = "application/json";
     }
     else {
-      const fields = ["dataset_id", "guidelines_version", "annotator_id", "group_id", "image_id", "filename", "status", "labels", "artifact_judgment", "usability", "active_seconds", "updated_at"];
+      const fields = ["dataset_id", "guidelines_version", "annotator_id", "group_id", "image_id", "filename", "status", "labels", "artifact_judgment", "active_seconds", "updated_at"];
       const cell = value => { let text = String(value ?? ""); if (/^[=+@\-\t\r\n]/.test(text)) text = "'" + text; return '"' + text.replaceAll('"', '""') + '"'; };
       body = fields.join(",") + "\r\n" + records.map(row => fields.map(field => cell(field === "labels" ? row.labels.join("|") : ["dataset_id", "guidelines_version", "annotator_id", "group_id"].includes(field) ? session[field] : row[field])).join(",")).join("\r\n"); type = "text/csv;charset=utf-8";
     }
