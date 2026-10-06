@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Image labeling | Think and Invent</title>
+  <script>
+    // Keep assets beside this page, including clean URLs without a trailing slash.
+    if (location.protocol !== 'file:' && location.pathname.endsWith('/annotation')) {
+      const base = document.createElement('base');
+      base.href = location.pathname + '/';
+      document.head.append(base);
+    }
+  </script>
+  <link rel="stylesheet" href="annotation.css?v=compact-20261005">
+  <script src="app.js?v=compact-20261005" defer></script>
+</head>
+<body>
+  <header><a href="../index.html">Think and Invent</a><span>Image quality study</span></header>
+  <main>
+    <p id="local-file-notice" hidden>This page needs a local web server. From the website folder, run <code>python -m http.server 8000 --bind 127.0.0.1</code>, then open <a href="http://127.0.0.1:8000/annotation/">http://127.0.0.1:8000/annotation/</a>.</p>
+    <script>if (location.protocol === 'file:') document.getElementById('local-file-notice').hidden = false;</script>
+    <section id="setup" class="panel">
+      <p class="eyebrow">Independent annotation</p>
+      <h1>Look closely. Label what you see.</h1>
+      <p>Review one image at a time. Select every visible artifact, then judge whether the scene is still usable. A clear, usable image can still have artifacts.</p>
+      <p id="loading" role="status">Loading study…</p>
+      <form id="start-form" hidden>
+        <label for="annotator">Your assigned annotator code</label>
+        <input id="annotator" required maxlength="64" pattern="[A-Za-z0-9_-]+" placeholder="e.g. student-01" autocomplete="off">
+        <p class="hint">Use the same code whenever you return. Do not enter your student ID or full name.</p>
+        <label for="group">Your assigned group</label><select id="group" required></select>
+        <label class="choice"><input type="checkbox" id="read-guidelines" required> I have read the labeling guide below.</label>
+        <button type="submit" class="primary">Start / resume labeling</button>
+      </form>
+      <p>Progress is saved in this browser when storage is available. Download results before leaving or switching devices. Nothing is submitted automatically.</p>
+    </section>
+    <section id="workspace" hidden>
+      <div class="toolbar"><div><h1 id="group-heading">Your group</h1><p id="progress-text"></p></div><div class="actions"><button id="show-guide" type="button">Labeling guide</button><button id="change-group" type="button">Change session</button></div></div>
+      <progress id="progress" value="0" max="1" aria-label="Completed images"></progress>
+      <div class="review-layout">
+        <section class="image-panel panel" aria-label="Current image">
+          <div class="toolbar"><strong id="image-heading" tabindex="-1"></strong><button id="zoom" type="button" disabled>Enlarge image</button></div>
+          <div class="image-stage"><img id="photo" alt="Image to label"></div>
+          <p id="image-status" role="status"></p>
+          <div class="navigation"><button id="previous" type="button">Previous</button><label for="jump">Image</label><select id="jump"></select><button id="next" type="button">Next</button></div>
+        </section>
+        <form id="annotation-form" class="panel">
+          <fieldset><legend>1. Which artifacts are visible?</legend><p class="hint">Select all that apply. Even a small affected area counts.</p><div id="label-options"></div>
+            <label class="choice"><input type="checkbox" name="artifact" value="none"> No listed artifact visible</label>
+            <label class="choice"><input type="checkbox" name="artifact" value="uncertain"> Unsure whether any listed artifact is present</label>
+          </fieldset>
+          <fieldset><legend>2. Is the scene usable?</legend><div id="usability-options"></div></fieldset>
+          <p id="form-error" role="alert"></p>
+          <button type="button" id="report-broken">Image unavailable — record issue</button>
+          <p class="hint autosave-hint">Selections save automatically. Click Next to continue.</p>
+        </form>
+      </div>
+      <section class="save-bar"><h2 id="completion-heading">Save your results at any time</h2><div class="actions"><button id="export-json" type="button" class="primary">Save results</button><button id="export-csv" type="button">CSV copy</button><button id="first-pending" type="button">First unfinished</button></div><p id="export-status" role="status"></p></section>
+    </section>
+    <details id="guidelines" class="panel" open>
+      <summary>Labeling guide &amp; examples</summary>
+      <p>Identify visible image defects and separately rate scene usability. Apply multiple labels when multiple artifacts are visible. Do not discuss answers with other annotators before returning your work.</p>
+      <ol><li>Enter the annotator code and group assigned by the organizer.</li><li>Inspect the image; use Enlarge image when needed. Select all visible artifacts, or explicitly choose no listed artifact / unsure.</li><li>Rate usability. “Usable” means you can recognize and describe the main scene and important objects; it does not mean flawless.</li><li>Your selections save automatically. Click Next to continue. Previous and the image selector let you review answers. Resume using the same browser, code, and group.</li><li>Click Save results at any time to download your selections and send it using the instructions below. CSV is an optional readable copy.</li></ol>
+      <div id="label-guide"></div>
+      <h3>Borderline cases</h3><p>A few lens droplets on an otherwise sharp scene: Lens contamination and Usable. A finger at the edge: Partial obstruction and Usable if important content remains visible. Light fog can be Usable; heavy fog may be Partly usable or Unusable. Add Fog and Lens contamination together only when both a veil and distinct spots / smears are visible.</p>
+      <p>“No listed artifact visible” and “Unsure” are exclusive choices. If you confidently see one artifact but are unsure about another, select the labels you are confident about.</p>
+      <p id="return-instructions"></p><div id="example-gallery"></div><p id="contact"></p><p id="guide-version" class="hint"></p>
+    </details>
+    <p id="storage-status" role="status"></p>
+  </main>
+  <dialog id="guide-dialog"><button id="close-guide" type="button">Back to labeling</button><div id="guide-content"></div></dialog>
+  <dialog id="image-dialog"><button id="close-zoom" type="button">Close enlarged image</button><img id="zoom-photo" alt="Enlarged image to label"></dialog>
+</body>
+</html>

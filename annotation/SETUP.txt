@@ -1,0 +1,129 @@
+IMAGE QUALITY ANNOTATION - ORGANIZER NOTES
+
+Three manually assigned groups
+Put your selected images in these folders under the website:
+  annotation/groups/group-01/
+  annotation/groups/group-02/
+  annotation/groups/group-03/
+
+Each group may contain any number of images, including zero. There is no fixed
+quota, automatic split or imposed overlap. Put an identical copy in multiple
+folders wherever you want overlap. Content hashes identify the same image across
+groups even when renamed. Duplicate copies within a group are shown only once.
+Visually identical re-encoded images require manual deduplication.
+
+Refresh after adding/removing images
+From the website root:
+  python annotation/prepare_dataset.py
+
+A static site cannot enumerate server folders itself. This command scans the
+three folders and refreshes the browser's image list. No counts or code edits
+are required. Redeploy generated data with the website for hosted changes.
+Files are ordered by their path within the group. Nested folders are scanned.
+Supported: JPG, JPEG, PNG, WebP, GIF and BMP, case insensitive. Check that animated
+GIFs are suitable for your still-image task.
+
+The page displays actual counts. Empty groups cannot be started. Navigation,
+progress, completion and exports use the selected group's length. Direct links:
+  /annotation/?group=group-01
+  /annotation/?group=group-02
+  /annotation/?group=group-03
+
+Generated data
+The script copies images under annotation/data/images with neutral names and
+generates annotation/data/dataset.json. Original source images are unchanged.
+Removing an image from a group removes it from the refreshed list. Older generated
+copies remain on disk but are no longer displayed unless still assigned.
+The private organizer report goes into ../annotation-organizer relative to the
+website root. It records source paths, actual counts and overlap. There is no
+automatic assignment of people or internal/external roles. Assign group links
+and anonymous annotator codes yourself. Multiple people can label a group with
+different codes. Additional people mean additional independent judgments.
+
+Original group folders inside the site may be accessible if deployed. To keep
+source folders outside the site, use an external parent folder with group-01,
+group-02 and group-03, and pass --source:
+  python annotation/prepare_dataset.py --source "C:\path\to\groups" --private-report-dir "C:\path\outside-site\organizer" --manifest "C:\path\to\manifest.csv"
+
+Repeat --manifest for multiple collector manifests. SHA-256 matching preserves
+attribution after renames. Edited/re-encoded images need separate attribution.
+annotation/data/ATTRIBUTION.csv retains known attribution on later refreshes
+without manifest arguments. Resolve missing attribution before public sharing.
+
+Finalize the study
+Edit study.json to set contact, return_instructions, final label definitions and
+guidelines_version. Add at least one reviewed image example per label under
+annotation/examples. Example study.json entry (in the examples array):
+  {"src":"examples/example-01.jpg","explanation":"Lens contamination and Usable: two droplets affect the edge while the main scene stays clear."}
+Retain example attributions and keep examples outside the evaluation groups.
+The current written examples are illustrative, not reviewed photo examples.
+
+Run the refresh command after changing guidelines: the dataset embeds a frozen
+study.json snapshot. Identical refreshes keep the study ID and saved progress.
+Changes to images, group membership, order or guidelines create a new study ID,
+so old answers are not silently reused on a different task. Finalize before
+students start; keep exported results before revising an active study.
+
+Preview locally
+From the website root:
+  python -m http.server 8000 --bind 127.0.0.1
+Open http://127.0.0.1:8000/annotation/
+Use a web server, not a double-clicked HTML file. The refresh command does not
+deploy the site. This static interface has no backend, authentication or automatic
+submission. Group links are assignments, not access controls.
+
+Student workflow (also on the page)
+1. Read the guide and reviewed examples. Enter the assigned anonymous code and
+   select the assigned group.
+2. Inspect each image; enlarge when helpful. Select every visible artifact, or
+   explicitly choose no listed artifact / unsure.
+3. Rate usability separately: a few lens droplets or a small corner obstruction
+   can still leave a scene Usable.
+4. Selections save automatically as you click. Next moves to the next image.
+   Previous and the image selector let you review answers. Report broken images
+   instead of guessing labels.
+5. Click Save results at any time to download all selections so far as JSON. Progress is also saved
+   in the same browser when storage works. Resume with the same code/group.
+   CSV is an optional readable copy; downloaded files cannot be imported.
+6. Send the JSON through the organizer's specified contact/channel. Downloading
+   does not submit anything automatically.
+
+Output and analysis
+JSON and CSV include filename, the original name from that image's group folder,
+alongside the stable image ID. This metadata does not reset existing progress.
+JSON stores study, annotator, group and stable image IDs. Each answer contains
+a labels array, artifact_judgment, usability, status and
+approximate active_seconds. CSV uses | between multiple labels. Drafts, pending
+items and unavailable images are not negative labels. JSON is the results format.
+Join dataset_id + image_id across DIFFERENT annotator codes for agreement.
+Multiple exports by one person are versions, not additional votes. The private
+report lists images shared by any groups and those shared by all three. Keep
+individual judgments; no automatic consensus/ground-truth labels are produced.
+Time an internal pilot to estimate the workload for your chosen group sizes.
+
+Assignment requirements
+Section 3.2 of ARI410-510_Project_Phase1a_Group.pdf permits a custom HTML tool with
+one item at a time, clean labels, structured output, usage instructions, testing
+and an AI-development record. Section 3.1 requires examples per label and contact.
+Section 3.3 requires multiply annotated items and an internal annotator; choose
+your overlap and assignments accordingly. The PDF suggests contacting the
+instructor about custom tools; no external message has been sent. Dataset source,
+sampling/licensing documentation, photo examples and the real-image pilot remain
+organizer tasks.
+
+Tests
+  python -m unittest discover -s annotation -p test_prepare_dataset.py -v
+  python annotation/test_browser.py --artifacts "C:\path\outside-site\test-results"
+Browser tests require Playwright for Python and installed Chrome. Synthetic
+fixtures check multiple labels, browser drafts/resume, exports, unavailable images,
+unequal group lengths, empty groups, mobile width and unavailable browser storage.
+Test the full workflow with real images before inviting students.
+
+AI-assisted development record
+The user originally requested overlapping 100-image groups with multiple labels
+on the existing website, following section 3.2. Codex read the PDF and built a
+custom HTML/CSS/JavaScript interface and Python preparation tool with tests.
+The user then specified exactly three manually populated folders, with no fixed
+image count. The automatic grouping plan was removed; the tool now preserves
+folder membership and user-controlled overlap, with dynamic counts in the UI.
+No AI ground-truth labels were assigned. No deployment was performed.

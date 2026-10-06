@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "guidelines_version": "1.0-draft",
+  "title": "Image quality annotation",
+  "contact": "",
+  "return_instructions": "Download your results JSON and return it to the project organizer using the channel they gave you.",
+  "labels": [
+    {"id": "partial_obstruction", "name": "Partial obstruction", "description": "A finger, strap, lens hood, or another nearby object blocks part of the camera's view. Ordinary objects within the scene do not count just because they overlap.", "example": "A blurry fingertip covers the upper-left corner, while the street and its objects remain clear."},
+    {"id": "fog", "name": "Fog / condensation", "description": "A visible misty veil reduces contrast or obscures detail. This includes lens condensation or atmospheric fog; do not guess which caused it when the image does not make that clear.", "example": "A light veil softens one side of the image, but the buildings and people are still recognizable."},
+    {"id": "lens_contamination", "name": "Lens contamination / droplets", "description": "Drops, dirt, or smears on the lens or glass in front of the camera produce localized spots, blur, or distortion. Rain or dirt visible on objects in the scene alone does not count.", "example": "Two water droplets create small distorted patches; most of the scene remains sharp. A continuous misty veil can also receive the Fog label."},
+    {"id": "overexposure", "name": "Overexposure", "description": "An excessively bright region loses visible detail. A bright scene or a naturally white object alone is not enough.", "example": "A sunlit part of a building is washed out and lacks texture, while the rest remains visible."},
+    {"id": "motion_blur", "name": "Motion blur", "description": "Movement produces streaks, smearing, or directional doubling in part or all of the image. Simple out-of-focus softness alone does not count.", "example": "A moving cyclist has a streaked outline, while the street and stationary objects are sharp."}
+  ],
+  "usability": [
+    {"id": "usable", "name": "Usable", "description": "The main scene and important objects remain clear enough to recognize and describe, even if small areas are affected."},
+    {"id": "limited", "name": "Partly usable", "description": "You can understand the scene, but degradation hides or distorts important objects or details."},
+    {"id": "unusable", "name": "Unusable", "description": "Degradation prevents reliable recognition of the main scene or important objects."},
+    {"id": "uncertain", "name": "Unsure", "description": "You cannot confidently judge usability."}
+  ],
+  "examples": []
+}

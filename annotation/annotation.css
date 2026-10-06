@@ -1,0 +1,85 @@
+:root { color-scheme: light; --ink: #172d36; --muted: #52646d; --accent: #096c62; --line: #cbd9da; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #f2f5f4; color: var(--ink); font: 16px/1.55 system-ui, sans-serif; }
+header { background: #182e36; color: white; padding: 1rem 4vw; display: flex; justify-content: space-between; gap: 1rem; }
+header a { color: white; text-decoration: none; font-weight: 750; }
+main { max-width: 1500px; margin: auto; padding: 2rem 3vw; }
+h1 { font-size: clamp(1.5rem, 3vw, 2.4rem); line-height: 1.2; margin: .5rem 0 1rem; }
+h2 { font-size: 1.25rem; } h3 { font-size: 1.05rem; margin-bottom: .4rem; }
+p { margin: .65rem 0 1rem; }
+.panel { background: white; border: 1px solid var(--line); border-radius: 14px; padding: 1.4rem; margin-bottom: 1.3rem; }
+#setup { max-width: 860px; margin-left: auto; margin-right: auto; }
+.eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: .75rem; color: var(--accent); font-weight: 800; }
+.hint { font-size: .85rem; color: var(--muted); }
+label { display: block; font-weight: 650; }
+input:not([type=radio]):not([type=checkbox]), select, textarea { width: 100%; padding: .65rem; border: 1px solid #81969b; border-radius: 7px; font: inherit; background: white; color: var(--ink); margin: .3rem 0 .8rem; }
+input[type=checkbox], input[type=radio] { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); flex-shrink: 0; margin: .25rem .65rem 0 0; }
+.choice { display: flex; align-items: flex-start; padding: .65rem; border: 1px solid var(--line); border-radius: 7px; margin: .45rem 0; cursor: pointer; font-weight: 550; }
+.choice:has(input:checked) { border-color: var(--accent); background: #eaf7f2; }
+.choice small { display: block; color: var(--muted); font-weight: 400; }
+button { font: inherit; font-weight: 650; border: 1px solid #80979b; background: white; color: var(--ink); padding: .65rem 1rem; border-radius: 7px; cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: white; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button:hover:not(:disabled) { filter: brightness(.93); }
+:focus-visible { outline: 3px solid #bd6700; outline-offset: 3px; }
+fieldset { border: 0; padding: 0; margin: 0 0 1.5rem; }
+legend { font-size: 1.05rem; font-weight: 800; }
+.inline-options, .actions, .toolbar, .navigation { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; }
+.toolbar { justify-content: space-between; }
+.inline-options label { font-weight: 500; }
+.review-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr); gap: 1.3rem; align-items: start; }
+.image-panel { position: sticky; top: 1rem; }
+.image-stage { display: grid; place-items: center; background: #e7edec; margin: 1rem 0; min-height: 300px; border-radius: 8px; }
+#photo { max-width: 100%; width: auto; max-height: 65vh; object-fit: contain; }
+.navigation select { width: 105px; margin: 0; }
+progress { display: block; width: 100%; height: 10px; margin: 0 0 1.3rem; accent-color: var(--accent); }
+summary { cursor: pointer; font-size: 1.15rem; font-weight: 750; }
+#form-error, #storage-status, #image-status { color: #8a360c; }
+#label-guide { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+.guide-card { padding: .8rem 1rem; border-left: 3px solid var(--accent); background: #f4f8f6; }
+#example-gallery img { max-width: 100%; max-height: 300px; }
+dialog { max-width: 96vw; width: 96vw; max-height: 96vh; padding: 1rem; border: 0; border-radius: 10px; }
+dialog::backdrop { background: #102027e6; }
+dialog img { display: block; margin: 1rem auto 0; max-width: 100%; max-height: 82vh; object-fit: contain; }
+[hidden] { display: none !important; }
+@media (max-width: 850px) { .review-layout { grid-template-columns: 1fr; } .image-panel { position: static; } main { padding: 1rem; } .panel { padding: 1rem; } header span { display: none; } #photo { max-height: 55vh; } }
+
+/* Compact review screen: instructions are available in the guide dialog. */
+body.annotating header { padding: .5rem 1.2rem; font-size: .9rem; }
+body.annotating main { max-width: 1800px; padding: .65rem 1.2rem; }
+#workspace > .toolbar h1 { font-size: 1.2rem; margin: 0; }
+#workspace > .toolbar p { font-size: .8rem; margin: .2rem 0; }
+#workspace > progress { margin: .3rem 0 .6rem; height: 6px; }
+#workspace .review-layout { gap: .8rem; grid-template-columns: minmax(0, 1.7fr) minmax(310px, 1fr); }
+#workspace .panel { padding: .8rem; margin: 0; }
+#workspace .image-panel { position: static; display: flex; flex-direction: column; height: 100%; min-height: 0; }
+#workspace .image-stage { flex: 1; min-height: 0; margin: .5rem 0; overflow: hidden; }
+#workspace #photo { width: 100%; height: 100%; max-height: 100%; object-fit: contain; }
+#workspace .review-layout { height: max(450px, calc(100dvh - 225px)); }
+#workspace #annotation-form { max-height: 100%; overflow: auto; }
+#workspace .choice { padding: .35rem .5rem; margin: .15rem 0; font-size: .875rem; line-height: 1.2; min-height: 30px; align-items: center; }
+#workspace .choice input { margin-top: 0; }
+#workspace fieldset { margin-bottom: .6rem; }
+#workspace legend { font-size: .98rem; }
+#workspace .hint { margin: .3rem 0; font-size: .78rem; }
+#usability-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0 .4rem; }
+#workspace button { padding: .45rem .7rem; font-size: .88rem; }
+#workspace .navigation { flex-wrap: nowrap; justify-content: center; margin-top: .25rem; }
+#workspace .navigation select { padding: .35rem; }
+#workspace #image-status:empty, #workspace #form-error:empty { display: none; }
+#workspace #image-status { font-size: .8rem; margin: .25rem 0; }
+.save-bar { display: flex; flex-wrap: wrap; gap: .4rem 1rem; align-items: center; margin: .6rem 0 .2rem; }
+.save-bar h2 { font-size: .88rem; margin: 0; }
+#export-status { width: 100%; font-size: .8rem; margin: 0; }
+#export-status:empty { display: none; }
+body.annotating #storage-status { font-size: .75rem; margin: .3rem 0; color: var(--muted); }
+#guide-dialog { max-width: 1050px; }
+#guide-dialog .panel { margin: .8rem 0 0; }
+@media (max-width: 850px) {
+  #workspace .review-layout { height: auto; grid-template-columns: 1fr; }
+  #workspace .image-stage { height: 38vh; flex: none; }
+  #workspace #annotation-form { overflow: visible; }
+  #workspace .panel { padding: .6rem; }
+  body.annotating main { padding: .65rem; }
+  #workspace > .toolbar { gap: .3rem; }
+}
