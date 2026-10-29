@@ -18,6 +18,8 @@ $url = "http://127.0.0.1:$Port/annotation/?v=$pageVersion"
 $indexUrl = "http://127.0.0.1:$Port/annotation/data/dataset.json"
 function Get-ServedStudyId {
     try {
+        $health = (Invoke-WebRequest -Uri "http://127.0.0.1:$Port/api/annotation?action=health" -UseBasicParsing -TimeoutSec 2).Content | ConvertFrom-Json
+        if ($health.service -ne "annotation-api") { return $null }
         $response = Invoke-WebRequest -Uri $indexUrl -UseBasicParsing -TimeoutSec 2
         return ($response.Content | ConvertFrom-Json).dataset_id
     } catch { return $null }
@@ -28,8 +30,12 @@ if (-not $servedId) {
     try { $listener.Connect('127.0.0.1', $Port); $occupied = $true }
     catch { $occupied = $false }
     finally { $listener.Dispose() }
-    if ($occupied) { throw "Port $Port is serving another application. Run start_annotation.ps1 -Port 8001." }
-    $arguments = @('-m', 'http.server', "$Port", '--bind', '127.0.0.1', '--directory', ('"' + $siteRoot + '"'))
+    if ($occupied) {
+        if ($Port -ge 8010) { throw 'No free preview port found. Use -Port 8020.' }
+        & $PSCommandPath -Port ($Port + 1) -NoBrowser:$NoBrowser
+        return
+    }
+    $arguments = @(('"' + (Join-Path $siteRoot 'serve_annotation.py') + '"'), '--port', "$Port")
     $null = Start-Process -FilePath $python -ArgumentList $arguments -WindowStyle Hidden -PassThru
     for ($attempt = 0; $attempt -lt 20; $attempt++) {
         Start-Sleep -Milliseconds 250

@@ -1,11 +1,15 @@
+CURRENT UPDATE: Online submission and shared completion status are documented in
+ONLINE_SUBMISSION_SETUP.txt. Numbered group folders are now discovered automatically.
+
 IMAGE QUALITY ANNOTATION - ORGANIZER NOTES
 
-Three manually assigned groups
+Manually assigned image groups
 Put your selected images in these folders under the website:
   annotation/groups/group-01/
   annotation/groups/group-02/
   annotation/groups/group-03/
 
+Additional numbered folders such as group-04 and group-05 are discovered automatically.
 Each group may contain any number of images, including zero. There is no fixed
 quota, automatic split or imposed overlap. Put an identical copy in multiple
 folders wherever you want overlap. Content hashes identify the same image across
@@ -17,7 +21,7 @@ From the website root:
   python annotation/prepare_dataset.py
 
 A static site cannot enumerate server folders itself. This command scans the
-three folders and refreshes the browser's image list. No counts or code edits
+numbered folders and refreshes the browser's image list. No counts or code edits
 are required. Redeploy generated data with the website for hosted changes.
 Files are ordered by their path within the group. Nested folders are scanned.
 Supported: JPG, JPEG, PNG, WebP, GIF and BMP, case insensitive. Check that animated
@@ -41,8 +45,7 @@ and anonymous annotator codes yourself. Multiple people can label a group with
 different codes. Additional people mean additional independent judgments.
 
 Original group folders inside the site may be accessible if deployed. To keep
-source folders outside the site, use an external parent folder with group-01,
-group-02 and group-03, and pass --source:
+source folders outside the site, use an external parent folder with numbered group folders, and pass --source:
   python annotation/prepare_dataset.py --source "C:\path\to\groups" --private-report-dir "C:\path\outside-site\organizer" --manifest "C:\path\to\manifest.csv"
 
 Repeat --manifest for multiple collector manifests. SHA-256 matching preserves
@@ -65,12 +68,12 @@ so old answers are not silently reused on a different task. Finalize before
 students start; keep exported results before revising an active study.
 
 Preview locally
-From the website root:
-  python -m http.server 8000 --bind 127.0.0.1
+From the website root, run .\start_annotation.ps1 or:
+  python serve_annotation.py --port 8000
 Open http://127.0.0.1:8000/annotation/
 Use a web server, not a double-clicked HTML file. The refresh command does not
-deploy the site. This static interface has no backend, authentication or automatic
-submission. Group links are assignments, not access controls.
+deploy the site. The website includes a Vercel submission API. Configure its GitHub token as
+described in ONLINE_SUBMISSION_SETUP.txt. Drafts remain browser-local.
 
 Student workflow (also on the page)
 1. Read the guide and reviewed examples. Enter the assigned anonymous code and
@@ -79,14 +82,15 @@ Student workflow (also on the page)
    explicitly choose no listed artifact / unsure.
 3. Apply all visible labels: Physical Obstruction, Exposure Fault, Lens
    Contamination, Optical/Motion Blur, and Lens Fog / Condensation. Even small
-   defects count. Use no listed artifact / unsure when appropriate.
+   defects count. Use Acceptable / unsure when appropriate.
 4. Selections save automatically as you click. Next moves to the next image.
    Previous and the image selector let you review answers.
-5. Click Save results at any time to download all selections so far as JSON. Progress is also saved
+5. Click Submit annotations after every image has an answer. Wait for confirmation.
+   Download backup saves a JSON copy at any time. Progress is also saved
    in the same browser when storage works. Resume with the same code/group.
    CSV is an optional readable copy; downloaded files cannot be imported.
-6. Send the JSON through the organizer's specified contact/channel. Downloading
-   does not submit anything automatically.
+6. A successful online submission sends the JSON directly to the organizer's
+   repository and closes the group. Downloading a backup alone is not submission.
 
 Output and analysis
 JSON and CSV include filename, the original name from that image's group folder,

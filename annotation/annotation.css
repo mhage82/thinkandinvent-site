@@ -103,3 +103,11 @@ body.annotating #storage-status { flex-shrink: 0; }
   #workspace .image-stage { height: auto; }
   #workspace .save-bar { margin-top: .5rem; }
 }
+
+.group-status-list { list-style: none; display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; margin: .4rem 0; }
+.group-status-list li { display: flex; gap: .6rem; align-items: center; padding: .35rem .6rem; border: 1px solid var(--line); border-radius: 6px; }
+.group-status-list small { color: var(--muted); }
+.group-status-list .completed { background: #e9efec; color: #65736c; }
+#refresh-groups { margin-bottom: .7rem; }
+#service-status { font-size: .9rem; }
+body.annotating .save-bar h2 { display: none; }

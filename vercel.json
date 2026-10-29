@@ -1,3 +1,9 @@
 {
-  "cleanUrls": true
+  "cleanUrls": true,
+  "functions": {
+    "api/annotation.py": {
+      "maxDuration": 60,
+      "excludeFiles": "{annotation/groups/**,annotation/data/images/**,annotation/test_*.py,annotation/*.txt,heart_rate_images/**,.venv/**,__pycache__/**}"
+    }
+  }
 }

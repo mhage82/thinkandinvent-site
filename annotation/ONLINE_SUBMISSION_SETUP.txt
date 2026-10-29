@@ -1,0 +1,116 @@
+ONLINE ANNOTATION SUBMISSION
+
+What changed
+Students label the images, then click Submit annotations. The API checks that
+every image has a valid answer before committing the JSON directly to GitHub.
+A successful submission closes the group for everyone. Completed groups are
+crossed out in the availability list and disabled in the group selector.
+Download backup and CSV copy remain available; downloading is not submission.
+
+Destination (configured defaults)
+Repository: mhage82/inline-image-classifier
+Branch: main
+Folder: data/annotations/raw/
+
+One group completion is stored as:
+  data/annotations/raw/group-01_<group-version>.json
+
+There is no study-ID folder. The suffix identifies the group's images and label
+definitions. It is independent of other groups: adding group-04 does not reopen
+group-01. Changing group-01's images or the label definitions allows that changed
+group to be annotated again under a different filename. GitHub is the shared
+source of completion status; there is no additional completion database.
+
+Each JSON includes a unique submission_id, annotator_id, group_id, dataset_id
+(provenance metadata), image IDs, original filenames, labels, and a server-set
+submission timestamp. Source filenames come from the deployed manifest, not
+untrusted browser-supplied filenames. No accept/reject derivation, consolidation
+workflow or model training is included in this website change.
+
+Activate on Vercel
+1. Create a fine-grained GitHub personal access token restricted to
+   mhage82/inline-image-classifier with Contents: Read and write. The repository
+   and main branch must already exist. If the branch is protected, use a branch
+   that permits these commits and set ANNOTATION_GITHUB_BRANCH accordingly.
+2. In the website's Vercel Project Settings > Environment Variables, add:
+     ANNOTATION_GITHUB_TOKEN=<the token>
+   Add it only to the environments that should accept real submissions.
+   Do not paste it into HTML, JavaScript, study.json, GitHub, or chat.
+3. These optional variables override the defaults above:
+     ANNOTATION_GITHUB_REPOSITORY=mhage82/inline-image-classifier
+     ANNOTATION_GITHUB_BRANCH=main
+     ANNOTATION_GITHUB_PATH=data/annotations/raw
+4. Optional: set ANNOTATION_ACCESS_CODE to a shared class code. When configured,
+   students see a Class access code field and must supply the code to submit.
+   Without it, the existing name-and-group-only flow is retained. A name/code
+   identifies the annotation; it is not a verified account or password.
+5. Commit/push the website changes and deploy/redeploy in Vercel after setting
+   variables. The API is /api/annotation; the student page is /annotation/.
+   Keep the Vercel project as the existing static/Other setup, with the file-based
+   Python API function. No Flask/FastAPI framework preset or new dependency is
+   required. vercel.json excludes large image folders from the function bundle
+   while retaining the annotation dataset manifest needed for validation.
+
+The server token creates commits through the GitHub Contents API. A personal
+access token or GitHub App token can trigger the model repository's push workflow.
+No workflow or other file is installed in the model repository by this change.
+
+More groups
+Add any numbered folders: group-01, group-02, group-03, group-04, group-10, etc.
+Run python annotation/prepare_dataset.py, then deploy the updated annotation/data
+and code. Counts are dynamic. Empty groups are disabled. Folders are sorted
+numerically. Completed status persists for unchanged groups even when other groups
+are added. The deployed manifest is authoritative; merely uploading an unindexed
+folder does not add a group to the interface.
+
+Submission behavior
+- A group closes only after GitHub confirms a stored submission.
+- The API requires answers for all images, valid label IDs, a valid annotator
+  name/code and the current deployed dataset/guideline version.
+- No file-replacement SHA is supplied to GitHub, so a second student's result
+  cannot replace the accepted file. Simultaneous submissions accept one result;
+  another student sees that the group has already been submitted.
+- A lost confirmation can be retried with the same submission_id. An identical
+  answer set returns success without making another file/commit.
+- Failed submissions do not erase browser progress. A backup remains downloadable.
+- Availability refreshes on page load, before starting a group, on returning to
+  the page, and periodically while visible. The server also checks on submission.
+- A group is not reserved while someone is working. Two students can start the
+  same available group before either submits. Only the first successful submission
+  is accepted. Reserving groups while in progress would be a separate feature.
+- Intermediate choices remain browser-local. This change submits final groups;
+  it does not implement cross-device draft saving or an annotator login system.
+- Changes to the global image manifest can create a new dataset_id and therefore
+  a new browser-draft namespace. Finalize groups before assigning them when
+  possible; exports from earlier versions remain separate.
+
+Local preview
+For online testing, copy .env.example to .env.local and add a real token. This
+file is ignored by Git and never served by the local preview server.
+Run .\start_annotation.ps1. It refreshes the image list and starts
+serve_annotation.py, which serves both the website and the API. If an older
+static server occupies port 8000, the launcher chooses the next available port.
+Changing .env.local requires restarting that local preview server, because
+environment variables are loaded when the process starts.
+
+Without a token, localhost can still preview labeling and download backups, with
+online submission disabled. On the public website, missing configuration or an
+availability failure prevents starting a group until the service is available.
+Students never need GitHub accounts or access to the repository token.
+
+Verification
+Standard-library tests:
+  python -m unittest discover -s annotation -p test_submission_api.py -v
+  python -m unittest discover -s annotation -p test_prepare_dataset.py -v
+Browser tests (Playwright for Python plus installed Chrome):
+  python annotation/test_browser.py --artifacts <outside-website-output-folder>
+  python annotation/test_online_browser.py --artifacts <outside-website-output-folder>
+The online browser test uses the real HTTP handler with fake GitHub storage and
+does not write to the actual model repository. It checks partial-submit rejection,
+two-browser completion status, retry after failure, lost-response idempotency,
+backup exports, one-image groups, and image fit at several laptop sizes.
+
+Official references
+https://docs.github.com/en/rest/repos/contents#create-or-update-file-contents
+https://vercel.com/docs/functions/runtimes/python/api-directory
+https://vercel.com/docs/environment-variables

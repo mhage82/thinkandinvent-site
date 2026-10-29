@@ -4,7 +4,9 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from prepare_dataset import GROUP_IDS, collect_groups, prepare
+from prepare_dataset import collect_groups, prepare
+
+GROUP_IDS = ("group-01", "group-02", "group-03")
 
 STUDY = {"guidelines_version": "test", "labels": [{"id": "fog"}]}
 
@@ -56,8 +58,7 @@ class ManualGroupTests(unittest.TestCase):
     def test_empty_groups_and_missing_folder(self):
         self.assertEqual(self.build()["assigned_unique_images"], 0)
         (self.source / "group-03").rmdir()
-        with self.assertRaisesRegex(ValueError, "Missing group folder"):
-            self.build()
+        self.assertEqual(len(self.build()["groups"]), 2)
 
     def test_refresh_add_remove_stable_id_and_originals_preserved(self):
         original = self.add("group-01", "named-category.jpg", b"one")
@@ -75,6 +76,15 @@ class ManualGroupTests(unittest.TestCase):
         self.assertNotIn("source_mapping", payload)
         for image in json.loads(payload)["images"].values():
             self.assertTrue((self.root / "public" / "images" / Path(image["src"]).name).is_file())
+
+    def test_additional_groups_are_discovered_and_sorted_numerically(self):
+        for name in ("group-10", "group-04", "not-a-group"):
+            (self.source / name).mkdir()
+        self.add("group-04", "four.jpg", b"four")
+        self.add("group-10", "ten.jpg", b"ten")
+        report = self.build()
+        self.assertEqual(list(report["group_counts"]), ["group-01", "group-02", "group-03", "group-04", "group-10"])
+        self.assertEqual(report["group_counts"]["group-04"], 1)
 
     def test_attribution_survives_refresh_without_manifest(self):
         self.add("group-01", "renamed.jpg", b"photo")

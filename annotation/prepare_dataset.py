@@ -1,14 +1,14 @@
-"""Refresh the image list from three manually populated group folders."""
+"""Refresh the image list from all numbered group folders."""
 import argparse
 import csv
 import hashlib
 import json
+import re
 import shutil
 from collections import Counter
 from pathlib import Path
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"}
-GROUP_IDS = ("group-01", "group-02", "group-03")
 HERE = Path(__file__).resolve().parent
 
 
@@ -28,12 +28,13 @@ def scan_images(source):
 def collect_groups(source):
     """Preserve membership; recognize identical copies across groups."""
     images, groups, mapping, duplicates = {}, [], {}, {}
-    for number, group_id in enumerate(GROUP_IDS, 1):
-        folder = source / group_id
-        if not folder.is_dir():
-            raise ValueError(f"Missing group folder: {folder}")
+    folders = sorted((p for p in source.iterdir() if p.is_dir() and re.fullmatch(r"group-\d+", p.name)), key=lambda p: (int(p.name[6:]), p.name))
+    if not folders:
+        raise ValueError(f"Add at least one numbered group folder, such as group-01, inside {source}")
+    for folder in folders:
+        group_id = folder.name
         found, repeated = scan_images(folder)
-        groups.append({"id": group_id, "name": f"Group {number:02d}", "image_ids": list(found)})
+        groups.append({"id": group_id, "name": "Group " + group_id[6:], "image_ids": list(found)})
         duplicates[group_id] = repeated
         mapping[group_id] = {key: str(path) for key, path in found.items()}
         for key, path in found.items():
@@ -96,7 +97,7 @@ def prepare(source, output, private_dir, study, manifests=()):
         "dataset_id": dataset_id, "assigned_unique_images": len(images),
         "group_counts": {group["id"]: len(group["image_ids"]) for group in groups},
         "shared_image_ids": sorted(key for key, count in counts.items() if count > 1),
-        "shared_by_all_image_ids": sorted(key for key, count in counts.items() if count == len(GROUP_IDS)),
+        "shared_by_all_image_ids": sorted(key for key, count in counts.items() if count == len(groups)),
         "duplicate_files_excluded_within_group": duplicates, "source_mapping": mapping,
         "groups": groups,
         "missing_attribution_image_ids": [key for key in images if key[4:] not in attribution],
@@ -113,7 +114,7 @@ def prepare(source, output, private_dir, study, manifests=()):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", type=Path, default=HERE / "groups", help="Parent of group-01, group-02 and group-03")
+    parser.add_argument("--source", type=Path, default=HERE / "groups", help="Parent of group-01, group-02, group-03, group-04, and any further numbered folders")
     parser.add_argument("--output", type=Path, default=HERE / "data")
     parser.add_argument("--private-report-dir", type=Path, default=HERE.parent.parent / "annotation-organizer")
     parser.add_argument("--study", type=Path, default=HERE / "study.json")

@@ -49,6 +49,7 @@ def main():
         with sync_playwright() as p:
             browser = p.chromium.launch(channel="chrome", headless=True)
             context = browser.new_context(accept_downloads=True, viewport={"width": 1440, "height": 1050})
+            context.route("**/api/annotation", lambda route: route.fulfill(json={"dataset_id": dataset["dataset_id"], "groups": {g["id"]: {"state": "available"} for g in dataset["groups"]}, "requires_access_code": False}))
             errors = []
             page = context.new_page()
             page.on("pageerror", lambda error: errors.append(str(error)))
@@ -178,7 +179,7 @@ def main():
             empty_data = {**dataset, "groups": [{**g, "image_ids": []} for g in dataset["groups"]]}
             empty.route("**/data/dataset.json", lambda route: route.fulfill(json=empty_data))
             empty.goto(url)
-            expect(empty.locator("#loading")).to_contain_text("All three groups are empty")
+            expect(empty.locator("#loading")).to_contain_text("All image groups are empty")
             expect(empty.locator("#start-form")).not_to_be_visible()
             expect(empty.locator("header")).to_have_css("background-color", "rgb(24, 46, 54)")
             # Direct-file previews still have styling and explain the server requirement.

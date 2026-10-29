@@ -1,0 +1,61 @@
+Codex usage report in developing the annotation page
+
+I used OpenAI Codex as a coding agent to develop a custom image annotation page
+within my existing Think and Invent website. I supplied the website's local code,
+explained the annotation workflow, and refined the implementation through follow-up
+prompts after reviewing the interface and trying it locally.
+
+The initial design used overlapping groups of 100 images and allowed multiple
+artifact labels. I then specified three manually populated folders and asked that
+the website support any number of images in each folder. I selected the images
+and their overlap myself and later reduced the groups to approximately 50 images.
+There were some unecessary additions such as user confidence and notes.
+Codex implemented these changes and updated the image list.
+
+Example prompt I used:
+
+I want to present sets of photos in an existing website. The photos will be
+annotated using the following labels:
+- Physical Obstruction
+- Lens Contamination
+- Exposure Fault
+- Optical/Motion Blur
+- Lens Fog / Condensation
+- acceptable
+- Unsure whether any listed artifact is present
+The current website code is here:
+C:\Users\moham\workspace\think_and_invent_site\thinkandinvent-site
+There are three image groups , 50 each.
+The website shall be agnostic of the number of images in each folder
+
+- "Lets add image name to the json file"
+
+- "take out the 3. Confidence in your judgments and the notes."
+   "I do not want the user to scroll if possible"
+   "they just click on the artifacts and next. if they click save at any point
+   it saves what ever they selected already"
+
+- "make the images fit the window"
+   "delete 2. Is the scene usable?"
+   "delete image unavailable part"
+  
+What was created
+The result is a self containing folder called annotation in the website code that has 
+HTML/CSS/JavaScript annotation interface at:
+  https://thinkandinvent.com/annotation/
+
+It presents one image at a time with a next button, The annotations are on the right of
+the screen and the user does not need to scrol. when the user click save, a JSON file
+that contains all the user response is generated. The user will be instructed to send it to the 
+group in an email.
+The session is not saved, there is not database used, the user will have to finish the session
+and generate the JSON file.If the user leaves the session and comes back to it, they might 
+loose their progress.
+There is also a labeling guide generated describing the labels and giving some instructions to the
+user.
+
+I place images in annotation/groups/group-01, group-02, and group-03. Running
+python annotation/prepare_dataset.py scans these folders and creates the website's
+JSON image list and neutral image copies. It uses a content hash as a stable image
+ID, so identical images in multiple groups can be matched for later agreement
+analysis. Each group's original image filenames are included in exported results.
