@@ -3,7 +3,7 @@
   const assetBase = new URL('.', document.currentScript.src);
   const $ = id => document.getElementById(id);
   let study, dataset, group, session, index = 0, imageReady = false, viewStarted = 0;
-  const apiUrl = new URL('../api/annotation', assetBase);
+  const apiUrl = new URL('/api/annotation', location.href);
   const localPreview = ['localhost', '127.0.0.1'].includes(location.hostname);
   let onlineReady = false, offlinePreview = false, availabilityBusy = false, submitting = false;
   let groupStates = {}, accessCode = '';
@@ -211,7 +211,7 @@
 
   function download(format) {
     saveSelections(); persist(); progress();
-    const withFilename = (id, row) => ({...row, filename: group.filenames?.[id] || ""});
+    const withFilename = (id, row) => ({...row, filename: group.filenames?.[id] || "", ...(dataset.images[id]?.display ? {display: dataset.images[id].display} : {})});
     const records = group.image_ids.map(id => withFilename(id, session.annotations[id] || {image_id: id, status: "pending", labels: []}));
     let body, type;
     if (format === "json") {
@@ -258,6 +258,7 @@
       return body;
     } catch (error) {
       if (error.name === 'AbortError') throw new Error('The request timed out. Your answers remain in this browser. Retry submission to confirm whether they were received.');
+      if (error instanceof TypeError) throw new Error('The annotation service could not be reached. Refresh the page and try again. If this continues, contact the organizer.');
       throw error;
     } finally { clearTimeout(timeout); }
   }
@@ -311,6 +312,7 @@
         $("service-status").textContent = 'Local preview: online submission is not configured. You can test labeling and download a backup.';
         renderGroupOptions();
       } else {
+        $("loading").textContent = 'Group availability could not be loaded.';
         $("service-status").textContent = error.message;
         $("start-form").hidden = true;
       }

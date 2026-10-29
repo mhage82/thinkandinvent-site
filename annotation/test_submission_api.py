@@ -11,7 +11,7 @@ from pathlib import Path
 from http.server import ThreadingHTTPServer
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from api.annotation import APIError, AnnotationService, GitHub, GitHubError, Settings, handler
+from api.annotation import APIError, AnnotationService, GitHub, GitHubError, Settings, handler, group_version
 
 
 def dataset():
@@ -128,6 +128,14 @@ class SubmissionTests(unittest.TestCase):
         changed["groups"][0]["image_ids"].append("different")
         self.assertEqual(service.status()["groups"]["group-01"]["state"], "available")
 
+    def test_display_conversion_identity_and_provenance(self):
+        group = self.data["groups"][0]
+        original = group_version(self.data, group)
+        self.data["images"] = {"one": {"display": {"display_sha256": "abc", "width": 100, "height": 50, "profile": {"format": "webp"}}}}
+        self.assertNotEqual(group_version(self.data, group), original)
+        receipt = self.service.submit(submission(self.data))
+        self.assertEqual(self.store.files[receipt["path"]]["annotations"]["one"]["display"]["display_sha256"], "abc")
+
     def test_validation_rejects_partial_unknown_stale_and_inconsistent(self):
         changes = [
             lambda p: p["annotations"].pop("two"),
@@ -182,6 +190,16 @@ class SubmissionTests(unittest.TestCase):
         github.create_file("data/annotations/raw/group-01.json", {"group_id": "group-01"})
         self.assertNotIn("sha", sent[0][2])
         self.assertEqual(sent[0][0], "PUT")
+
+    def test_availability_errors_identify_credentials_without_exposing_secrets(self):
+        for status, code in [(401, "github_auth"), (403, "github_access"), (404, "github_repository")]:
+            def fail(status=status):
+                raise GitHubError(status)
+            self.store.list_files = fail
+            with self.subTest(status=status), self.assertLogs(level="WARNING"), self.assertRaises(APIError) as error:
+                self.service.status()
+            self.assertEqual(error.exception.code, code)
+            self.assertNotIn("test-secret", error.exception.message)
 
 
 class HTTPTests(unittest.TestCase):

@@ -3,6 +3,7 @@ import base64
 import hashlib
 import hmac
 import json
+import logging
 import math
 import os
 import re
@@ -133,6 +134,9 @@ def group_version(dataset, group):
         "labels": dataset["study"]["labels"],
         "guidelines_version": dataset["study"]["guidelines_version"],
     }
+    display_versions = {key: dataset.get("images", {}).get(key, {}).get("display", {}).get("display_sha256") for key in group["image_ids"]}
+    if any(display_versions.values()):
+        signature["display_versions"] = display_versions
     return hashlib.sha256(json.dumps(signature, sort_keys=True).encode()).hexdigest()[:20]
 
 
@@ -158,8 +162,15 @@ class AnnotationService:
         self.ready()
         try:
             filenames = self.github.list_files()
-        except GitHubError:
-            raise APIError(503, "storage_unavailable", "Group availability could not be checked. Please try again.") from None
+        except GitHubError as error:
+            logging.getLogger(__name__).warning("Annotation availability: GitHub returned HTTP %s", error.status)
+            if error.status == 401:
+                raise APIError(503, "github_auth", "GitHub rejected the submission token. The organizer needs to replace ANNOTATION_GITHUB_TOKEN in Vercel and redeploy.") from None
+            if error.status == 403:
+                raise APIError(503, "github_access", "GitHub denied access or reached its request limit. The organizer should check the token's selected repository and Contents permissions in GitHub.") from None
+            if error.status == 404:
+                raise APIError(503, "github_repository", "The configured GitHub repository or branch could not be accessed. The organizer should check repository access and the configured branch.") from None
+            raise APIError(503, "storage_unavailable", "Group availability could not be checked. Please try again. The organizer can check the Vercel function logs for the GitHub response status.") from None
         return {
             "dataset_id": self.dataset["dataset_id"],
             "requires_access_code": bool(self.settings.access_code),
@@ -201,6 +212,9 @@ class AnnotationService:
                 "labels": sorted(labels), "artifact_judgment": judgment, "status": "annotated",
                 "active_seconds": seconds,
             }
+            display = self.dataset.get("images", {}).get(image_id, {}).get("display")
+            if display:
+                clean[image_id]["display"] = display
             for field in ("started_at", "updated_at"):
                 value = row.get(field)
                 if isinstance(value, str) and len(value) <= 64:

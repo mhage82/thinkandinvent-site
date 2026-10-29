@@ -141,6 +141,14 @@ def main():
             expect(second.locator("#loading")).to_contain_text("All groups have been completed")
             expect(second.locator("#start-form")).not_to_be_visible()
             expect(second.locator("#group-availability s")).to_have_count(3)
+            # Network failures must replace the loading message with actionable text.
+            other.route("**/api/annotation", lambda route: route.abort())
+            second.reload()
+            expect(second.locator("#loading")).to_have_text("Group availability could not be loaded.")
+            expect(second.locator("#service-status")).to_contain_text("could not be reached")
+            other.unroute("**/api/annotation")
+            second.locator("#refresh-groups").click()
+            expect(second.locator("#loading")).to_contain_text("All groups have been completed")
             assert not errors, errors
             other.close()
             browser.close()

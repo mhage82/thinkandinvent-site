@@ -136,3 +136,43 @@ Study version 2.0 uses the final five broader artifact labels, including under-
 exposure and optical defocus. Usability and unavailable-image annotation controls
 were removed. This generates a new study ID; earlier exports/answers remain
 associated with the earlier study and are not silently relabeled.
+
+
+ADDING A NEW LOCAL IMAGE COLLECTION (OFFLINE)
+Install the local image-preparation tools in your Python environment:
+  python -m pip install -r annotation/requirements-images.txt
+Preview an assignment plan without changing the website:
+  python annotation/add_image_groups.py --source "C:\Users\moham\Downloads\image_test\collected_images"
+Create the planned groups and then refresh the website manifest:
+  python annotation/add_image_groups.py --source "C:\Users\moham\Downloads\image_test\collected_images" --apply
+  python annotation/prepare_dataset.py
+
+The default is up to 50 images per new group, with 10 randomly selected common
+images in every new group. Remaining images occur in only one new group; the last
+group can be smaller. Seed 20261029 makes the random selection reproducible.
+Change --group-size, --shared, or --seed for a future batch if desired.
+
+Original SHA-256 hashes exclude images already assigned to existing groups even
+when incoming files were renamed. Exact duplicate source files are counted once.
+Existing groups are preserved. New group numbering starts after the highest
+existing numbered folder. Running the same collection again adds no groups.
+
+Source images stay in the input folder. The website receives WebP display copies
+with the long edge at most 1600 pixels and quality 95. Orientation is applied and
+ICC color profiles are retained when supported. HEIC and AVIF are decoded through
+the image-preparation tools. Multi-image inputs, including JPEG/MPO photos with additional image frames,
+use their primary frame. Source frame counts and formats are recorded for review.
+
+Each generated group contains .image_sources.json. Keep this file with the group:
+it maps the WebP copy to the ORIGINAL image ID and original filename. The normal
+preparation command verifies the copy hash before trusting that identity. Changing
+a web image without updating its provenance is rejected, preventing labels being
+attached to the wrong source. A private preparation report outside the website
+records original paths, overlap, conversion settings and display/source hashes.
+
+The public manifest and submitted annotation JSON retain display metadata so model
+preparation can distinguish source originals from the images actually presented to
+annotators. Changing a group's display version changes its completion fingerprint.
+Earlier groups without web-copy provenance keep their existing fingerprints and
+completion status. Commit the new group folders, their provenance files, generated
+annotation/data, and the updated preparation/API code together before deploying.

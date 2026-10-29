@@ -12,12 +12,39 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"}
 HERE = Path(__file__).resolve().parent
 
 
+def image_sources(source):
+    """Optional provenance for web copies, preserving original-image identities."""
+    metadata_path = source / ".image_sources.json"
+    if not metadata_path.exists():
+        return {}
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8-sig"))
+    if metadata.get("schema_version") != 1 or not isinstance(metadata.get("images"), dict):
+        raise ValueError(f"Invalid image provenance file: {metadata_path}")
+    for name, row in metadata["images"].items():
+        if not isinstance(row, dict) or not re.fullmatch(r"img-[0-9a-f]{64}", row.get("image_id", "")) or not re.fullmatch(r"[0-9a-f]{64}", row.get("display_sha256", "")):
+            raise ValueError(f"Invalid image identity in {metadata_path}: {name}")
+        # Generated provenance always references a direct child, never an external path.
+        if Path(name).name != name or "/" in name or "\\" in name or not (source / name).is_file():
+            raise ValueError(f"Missing or invalid web image in {metadata_path}: {name}")
+        original = row.get("source_filename", "")
+        if not original or Path(original).name != original or "/" in original or "\\" in original:
+            raise ValueError(f"Invalid source filename in {metadata_path}: {name}")
+        if any(not isinstance(row.get(field), int) or row[field] < 1 for field in ("width", "height")) or not isinstance(row.get("profile"), dict):
+            raise ValueError(f"Invalid display dimensions/profile in {metadata_path}: {name}")
+    return metadata["images"]
+
+
 def scan_images(source):
     images, duplicates = {}, []
+    provenance = image_sources(source)
     for path in sorted(source.rglob("*")):
         if not path.is_file() or path.suffix.lower() not in IMAGE_EXTENSIONS:
             continue
-        image_id = "img-" + hashlib.sha256(path.read_bytes()).hexdigest()
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        record = provenance.get(path.relative_to(source).as_posix())
+        if record and record["display_sha256"] != digest:
+            raise ValueError(f"Web image changed without updating its provenance: {path}")
+        image_id = record["image_id"] if record else "img-" + digest
         if image_id in images:
             duplicates.append(str(path.relative_to(source)))
         else:
@@ -38,6 +65,8 @@ def collect_groups(source):
         duplicates[group_id] = repeated
         mapping[group_id] = {key: str(path) for key, path in found.items()}
         for key, path in found.items():
+            if key in images and hashlib.sha256(images[key].read_bytes()).digest() != hashlib.sha256(path.read_bytes()).digest():
+                raise ValueError(f"The same original image has different display copies across groups: {path}")
             images.setdefault(key, path)
     return images, groups, mapping, duplicates
 
@@ -65,13 +94,29 @@ def prepare(source, output, private_dir, study, manifests=()):
         raise ValueError("Output is not an existing annotation dataset. Choose an empty output folder.")
     images, groups, mapping, duplicates = collect_groups(source)
     public_images = {key: {"src": f"data/images/{key}{path.suffix.lower()}"} for key, path in images.items()}
+    originals = {}
+    for group in groups:
+        records = image_sources(source / group["id"])
+        originals[group["id"]] = {}
+        for key, path_text in mapping[group["id"]].items():
+            path = Path(path_text)
+            record = records.get(path.name)
+            originals[group["id"]][key] = record["source_filename"] if record else path.name
+            if record:
+                public_images[key]["display"] = {field: record[field] for field in ("display_sha256", "width", "height", "profile")}
+                for field in ("source_format", "source_size", "source_frames"):
+                    if field in record:
+                        public_images[key]["display"][field] = record[field]
+                # Version the display URL too: an older full-resolution WebP
+                # with the same original ID must not be reused from disk/cache.
+                public_images[key]["src"] = f"data/images/{key}-{record['display_sha256'][:12]}{path.suffix.lower()}"
     payload = {"schema_version": 1, "study": study, "images": public_images, "groups": groups}
     dataset_id = "study-" + hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:20]
     payload["dataset_id"] = dataset_id
     # Export-only metadata: keep the existing study ID and saved annotations.
     # Use each group's own filename when a shared image has been renamed.
     for group in groups:
-        group["filenames"] = {key: Path(path).name for key, path in mapping[group["id"]].items()}
+        group["filenames"] = originals[group["id"]]
     attribution = read_attributions(manifests)
     # Retain attribution from earlier refreshes when manifests are not re-supplied.
     existing_attribution = output / "ATTRIBUTION.csv"
